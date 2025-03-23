@@ -4,11 +4,12 @@
     <q-list bordered separator>
       <q-item v-for="statement in paginatedStatements" :key="statement.id">
         <q-item-section>
-          <q-item-label header style="font-weight: bold">{{ statement.statement_text }}</q-item-label>
+          <q-item-label style="font-weight: bold">{{ statement.statement_text }}</q-item-label>
           <q-item-label caption>
-            <q-icon name="check" /> {{ statement.supporting_arguments_count }} | <q-icon name="close" />
-            {{ statement.opposing_arguments_count }}
-            <br>Created by: {{ statement.username }} on {{ new Date(statement.created_at).toLocaleString() }}
+            <q-icon color="green" name="check" /> {{ statement.supporting_arguments_count }} | <q-icon color="red"
+              name="close" />
+            {{ statement.opposing_arguments_count }} | <q-icon name="comment" /> {{ statement.comments_count }}
+            <br>Created by {{ statement.username }} on {{ new Date(statement.created_at).toLocaleString() }}
           </q-item-label>
         </q-item-section>
       </q-item>
