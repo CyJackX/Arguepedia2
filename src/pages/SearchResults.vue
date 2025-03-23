@@ -31,6 +31,7 @@ const route = useRoute();
 const supabase = useSupabase();
 const statements = ref<Statement[]>([]);
 const itemsPerPage = 10;
+const maxResults = 50; // Set total results to return from backend, pagination client-side.
 const currentPage = ref(1);
 
 // Compute total pages based on actual results
@@ -46,7 +47,7 @@ const paginatedStatements = computed(() => {
 const searchStatements = async (query: string) => {
   if (!query) return;
   // Load 100 results at once
-  const results = await supabase.searchStatements(query, 0, 100);
+  const results = await supabase.searchStatements(query, 0, maxResults);
   statements.value = results;
   currentPage.value = 1; // Reset to first page on new search
 };
