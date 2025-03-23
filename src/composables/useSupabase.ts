@@ -54,6 +54,7 @@ export function useSupabase() {
     offset_value: number,
     limit_value: number,
   ): Promise<Statement[]> => {
+    console.log('Searching for statements:', search_term);
     const { data, error } = await supabase.rpc('search_statements', {
       search_term,
       offset_value,

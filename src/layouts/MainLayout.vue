@@ -1,31 +1,37 @@
 <template>
   <q-layout view="hHh lpR fFf">
-
-    <q-header class="bg-primary text-white " height-hint="98">
+    <q-header class="bg-primary text-white" height-hint="98">
       <q-toolbar>
         <q-toolbar-title align="center">
           Arguepedia
         </q-toolbar-title>
       </q-toolbar>
 
-      <q-tabs align="center">
-        <q-route-tab to="/" label="Home" />
-        <q-route-tab to="/about" label="About" />
+      <q-toolbar>
+        <q-tabs align="center" class="full-width">
+          <q-route-tab to="/" label="Front Page" />
+          <q-route-tab to="/about" label="About" />
+        </q-tabs>
+      </q-toolbar>
 
-        <q-route-tab to="/page3" label="Page Three" />
-      </q-tabs>
-      <q-input v-model="searchTerm" type="search" placeholder="Search" class="q-px-md q-ma-sm col-2"
-        @keyup.enter="handleSearch" maxlength="140" dense outlined bg-color="white" :rules="[
-          val => /^[a-zA-Z0-9.,!?#$%& ]*$/.test(val) || 'Only letters, numbers, and basic punctuation allowed'
-        ]" counter>
-        <template v-slot:append>
-          <q-icon name="search" @click="handleSearch" />
-        </template>
-      </q-input>
+      <q-toolbar>
+        <q-space />
+        <q-input style="max-width: 600px; width: 80%" v-model="searchTerm" type="search" placeholder="Search"
+          class="q-px-md q-ma-md" @keyup.enter="handleSearch" dense outlined bg-color="white">
+          <template v-slot:append>
+            <q-icon name="search" @click="handleSearch" />
+          </template>
+        </q-input>
+        <q-space />
+      </q-toolbar>
     </q-header>
 
     <q-page-container>
-      <router-view />
+      <q-page class="flex justify-center">
+        <div class="q-pa-md" style="max-width: 600px; width: 100%">
+          <router-view />
+        </div>
+      </q-page>
     </q-page-container>
 
     <q-footer class="bg-grey-8 text-white">
