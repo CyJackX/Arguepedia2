@@ -10,18 +10,13 @@
  */
 
 import { ref } from 'vue';
-import { supabase } from '@/components/supabase';
-import type {
-  Statement,
-  SearchResult,
-  RelatedStatement,
-  StatementType,
-  Argument,
-} from '@/types/types';
+import { supabase } from '../utils/supabase';
+import type { Statement, RelatedStatement, StatementType, Argument } from '../components/models';
+import type { User } from '@supabase/supabase-js';
 
 export function useSupabase() {
-  const user = ref(null); // Add user state
-  const statementError = ref(null);
+  const user = ref<User | null>(null); // Add user state with proper type
+  const statementError = ref<string | null>(null);
 
   /**
    * Authentication Operations
@@ -42,11 +37,11 @@ export function useSupabase() {
   };
 
   // Initialize user state
-  getUser();
+  void getUser(); // Add void to explicitly ignore promise
 
-  const onAuthStateChange = (callback) => {
+  const onAuthStateChange = (callback: (event: string, session: unknown) => void) => {
     return supabase.auth.onAuthStateChange((event, session) => {
-      user.value = session?.user || null;
+      user.value = session?.user ?? null; // Use nullish coalescing
       callback?.(event, session);
     });
   };
@@ -54,28 +49,21 @@ export function useSupabase() {
   /**
    * Searches for statements similar to the provided text using fuzzy matching
    */
-  const checkSimilarStatements = async (
-    text: string,
-    minSimilarity = 0.3,
-    limit = 5,
-  ): Promise<SearchResult[]> => {
-    try {
-      const { data, error } = await supabase.rpc('check_similar_statements', {
-        search_text: text.trim(),
-        min_similarity: minSimilarity,
-        result_limit: limit,
-      });
-
-      if (error) {
-        console.error('Error in checkSimilarStatements:', error);
-        return [];
-      }
-      console.log('checkSimilarStatements data:', data);
-      return data || [];
-    } catch (err) {
-      console.error('Exception in checkSimilarStatements:', err);
+  const searchStatements = async (
+    search_term: string,
+    offset_value: number,
+    limit_value: number,
+  ): Promise<Statement[]> => {
+    const { data, error } = await supabase.rpc('search_statements', {
+      search_term,
+      offset_value,
+      limit_value,
+    });
+    if (error) {
+      console.error('Error in searchStatements:', error);
       return [];
     }
+    return data || [];
   };
 
   /**
@@ -98,39 +86,39 @@ export function useSupabase() {
     }
   };
 
-  /**
-   * Statement Fetching Operations
-   */
-  const getRandomStatementId = async () => {
-    console.log('Getting random statement ID');
-    try {
-      const { count, error: countError } = await supabase
-        .from('statement')
-        .select('*', { count: 'exact', head: true });
+  // /**
+  //  * Statement Fetching Operations
+  //  */
+  // const getRandomStatementId = async () => {
+  //   console.log('Getting random statement ID');
+  //   try {
+  //     const { count, error: countError } = await supabase
+  //       .from('statement')
+  //       .select('*', { count: 'exact', head: true });
 
-      if (countError) {
-        console.error('Error getting statement count:', countError);
-        return null;
-      }
+  //     if (countError) {
+  //       console.error('Error getting statement count:', countError);
+  //       return null;
+  //     }
 
-      const randomIndex = Math.floor(Math.random() * count);
-      const { data, error } = await supabase
-        .from('statement')
-        .select('id')
-        .range(randomIndex, randomIndex)
-        .single();
+  //     const randomIndex = Math.floor(Math.random() * count);
+  //     const { data, error } = await supabase
+  //       .from('statement')
+  //       .select('id')
+  //       .range(randomIndex, randomIndex)
+  //       .single();
 
-      if (error) {
-        console.error('Error getting random statement:', error);
-        return null;
-      }
+  //     if (error) {
+  //       console.error('Error getting random statement:', error);
+  //       return null;
+  //     }
 
-      return data.id;
-    } catch (err) {
-      console.error('Unexpected error in getRandomStatementId:', err);
-      return null;
-    }
-  };
+  //     return data.id;
+  //   } catch (err) {
+  //     console.error('Unexpected error in getRandomStatementId:', err);
+  //     return null;
+  //   }
+  // };
 
   /**
    * Fetches a statement from the database by ID or gets a random statement if no ID provided
@@ -227,33 +215,6 @@ export function useSupabase() {
   };
 
   /**
-   * Creates a connection between two statements with a specified relationship type
-   */
-  const createConnection = async (
-    fromStatementId: number,
-    toStatementId: number,
-    relationshipType: StatementType,
-  ): Promise<{ data?: number; error?: Error }> => {
-    try {
-      const { data: newRelationshipID, error } = await supabase.rpc(
-        'insert_statement_relationship',
-        {
-          p_from_statement_id: fromStatementId,
-          p_to_statement_id: toStatementId,
-          p_statement_type: relationshipType,
-        },
-      );
-
-      if (error) throw error;
-      console.log('Connection created:', newRelationshipID);
-      return { data: newRelationshipID };
-    } catch (error) {
-      console.error('Error submitting connection:', error);
-      return { error };
-    }
-  };
-
-  /**
    * Updates or creates a vote for a statement relationship
    * @param relationshipId - The ID of the statement relationship to vote on
    * @param vote - True for upvote, false for downvote
@@ -283,14 +244,13 @@ export function useSupabase() {
   return {
     getUser,
     onAuthStateChange,
-    checkSimilarStatements,
+    searchStatements,
     createNewStatement,
     fetchStatement,
     fetchArguments_by_conclusion,
     user, // Export the user ref
     statementError,
     fetchConnectedStatements,
-    createConnection,
     updateVote,
   };
 }

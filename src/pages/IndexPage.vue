@@ -1,38 +1,20 @@
 <template>
-  <q-page class="row items-center justify-evenly">
-    <example-component title="Example component" active :todos="todos" :meta="meta"></example-component>
-  </q-page>
+  <div class="text-center q-pa-md">
+    <h1 class="text-h3 q-mb-md"></h1>
+    <p class="text-body1 q-mx-auto" style="max-width: 600px">
+      Arguepedia is a platform for creating and sharing arguments. It is a
+      place for people to come together and argue about things they care about.
+    </p>
+  </div>
+  <div class="text-center q-pa-md">
+    <h2 class="text-h3 q-mb-md">Recent Activity</h2>
+    <q-list>
+      <q-item>
+        <q-item-section>
+          <q-item-label>xxx</q-item-label>
+        </q-item-section>
+      </q-item>
+    </q-list>
+  </div>
+
 </template>
-
-<script setup lang="ts">
-import { ref } from 'vue';
-import type { Todo, Meta } from 'components/models';
-import ExampleComponent from 'components/ExampleComponent.vue';
-
-const todos = ref<Todo[]>([
-  {
-    id: 1,
-    content: 'ct1!'
-  },
-  {
-    id: 2,
-    content: 'ct2'
-  },
-  {
-    id: 3,
-    content: 'ct3'
-  },
-  {
-    id: 4,
-    content: 'ct4'
-  },
-  {
-    id: 5,
-    content: 'ct5'
-  }
-]);
-
-const meta = ref<Meta>({
-  totalCount: 1200
-});
-</script>

@@ -10,10 +10,12 @@ export interface Meta {
 export interface Statement {
   id: number;
   statement_text: string;
-  opposed_by_count: number;
-  supported_by_count: number;
-  opposes_count: number; // Made optional
-  supports_count: number; // Made optional
+  user_id: string;
+  created_at: string;
+  username: string;
+  comments_count: number;
+  supporting_arguments_count: number;
+  opposing_arguments_count: number;
 }
 
 export interface SearchResult extends Statement {
