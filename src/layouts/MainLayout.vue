@@ -52,12 +52,17 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 const searchTerm = ref('');
 
-const handleSearch = () => {
+const handleSearch = async () => {
   if (searchTerm.value.trim()) {
-    router.push({
-      path: '/search',
-      query: { q: searchTerm.value }
-    });
+    try {
+      await router.push({
+        path: '/search',
+        query: { q: searchTerm.value }
+      });
+    } catch (error) {
+      console.error('Navigation error:', error);
+      // Handle navigation failure if needed
+    }
   }
 };
 </script>

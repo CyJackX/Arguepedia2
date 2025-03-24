@@ -124,9 +124,9 @@ export function useSupabase() {
   /**
    * Fetches a statement from the database by ID or gets a random statement if no ID provided
    */
-  const fetchStatement = async (id: number): Promise<Statement | null> => {
+  const fetchStatement = async (statement_id: number): Promise<Statement | null> => {
     try {
-      const { data, error } = await supabase.from('statement').select('*').eq('id', id).single();
+      const { data, error } = await supabase.rpc('get_statement', { statement_id });
 
       if (error) throw error;
       return data;
@@ -135,6 +135,7 @@ export function useSupabase() {
       throw err;
     }
   };
+
   /**
    * Fetches an argument from the database by ID using the get_argument stored procedure
    * @param id The ID of the argument to fetch
