@@ -2,6 +2,8 @@
 import { useRoute, useRouter } from 'vue-router';
 import { useStatementStore } from '../stores/statementStore';
 import { ref, onMounted, computed } from 'vue';
+import { supabase } from '../utils/supabase';
+import type { Comment } from '../components/models';
 
 const route = useRoute();
 const router = useRouter();
@@ -23,8 +25,22 @@ const loadStatement = async () => {
   isLoading.value = false;
 };
 
+const comments = ref<Comment[]>([]);
+const fetchComments = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('comments')
+      .select('*')
+      .eq('statement_id', statementId);
+    comments.value = data as Comment[];
+  } catch (error) {
+    console.error('Failed to fetch comments:', error);
+  }
+};
+
 onMounted(() => {
   void loadStatement();
+  void fetchComments();
 });
 </script>
 
@@ -57,7 +73,7 @@ onMounted(() => {
             No Comments
           </div>
           <div v-else>
-            <CommentsComponent />
+            <CommentComponent v-for="comment in comments" :key="comment.id" :comment="comment" />
           </div>
         </q-tab-panel>
         <q-tab-panel name="arguments">
@@ -66,8 +82,9 @@ onMounted(() => {
           </div>
         </q-tab-panel>
         <q-tab-panel name="opposing">
+          <h3>Opposing Arguments</h3>
           <div v-if="currentStatement?.opposing_arguments_count && currentStatement.opposing_arguments_count > 0">
-            <h3>Opposing Arguments</h3>
+
           </div>
         </q-tab-panel>
       </q-tab-panels>

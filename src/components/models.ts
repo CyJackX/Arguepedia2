@@ -46,3 +46,11 @@ export interface Argument {
 }
 
 export type StatementType = 'SUPPORTS' | 'OPPOSES';
+
+export interface Comment {
+  id: number;
+  parent_id: number;
+  content: string;
+  username: string;
+  created_at: string;
+}
