@@ -14,7 +14,7 @@ const fetchReplies = async () => {
     const { data, error } = await supabase
       .from('comments')
       .select('*')
-      .eq('parent_commentid', props.comment.id);
+      .eq('parent_comment_id', props.comment.id);
 
     if (error) {
       console.error('Error fetching replies:', error);

@@ -4,6 +4,7 @@ import { useStatementStore } from '../stores/statementStore';
 import { ref, onMounted, computed } from 'vue';
 import { supabase } from '../utils/supabase';
 import type { Comment } from '../components/models';
+import CommentComponent from '../components/CommentComponent.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -28,6 +29,7 @@ const loadStatement = async () => {
 const comments = ref<Comment[]>([]);
 const fetchComments = async () => {
   try {
+    console.log('Fetching comments:', statementId);
     const { data, error } = await supabase
       .from('comments')
       .select('*')
