@@ -46,10 +46,12 @@ export interface Argument {
 }
 
 export type StatementType = 'SUPPORTS' | 'OPPOSES';
+export type TopicType = 'statement' | 'argument' | 'comment';
 
 export interface Comment {
   id: number;
   parent_id: number;
+  parent_type: TopicType;
   content: string;
   username: string;
   created_at: string;

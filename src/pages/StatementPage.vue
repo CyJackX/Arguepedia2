@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { useStatementStore } from '../stores/statementStore';
 import { ref, onMounted, computed } from 'vue';
-import { supabase } from '../utils/supabase';
+import { useSupabase } from '../composables/useSupabase';
 import type { Comment } from '../components/models';
 import CommentComponent from '../components/CommentComponent.vue';
 
 const route = useRoute();
-const router = useRouter();
 const statementId = route.params.id;
 const statementStore = useStatementStore();
+const supabase = useSupabase();
 const isLoading = ref(true);
 const activeTab = ref('comments');
 const currentStatement = computed(() => statementStore.currentStatement);
@@ -27,22 +27,10 @@ const loadStatement = async () => {
 };
 
 const comments = ref<Comment[]>([]);
-const fetchComments = async () => {
-  try {
-    console.log('Fetching comments:', statementId);
-    const { data, error } = await supabase
-      .from('comments')
-      .select('*')
-      .eq('statement_id', statementId);
-    comments.value = data as Comment[];
-  } catch (error) {
-    console.error('Failed to fetch comments:', error);
-  }
-};
 
-onMounted(() => {
+onMounted(async () => {
   void loadStatement();
-  void fetchComments();
+  comments.value = await supabase.fetchComments(parseInt(statementId as string), 'statement');
 });
 </script>
 
@@ -74,9 +62,9 @@ onMounted(() => {
           <div v-if="currentStatement?.comments_count && currentStatement.comments_count === 0">
             No Comments
           </div>
-          <div v-else>
+          <q-list v-else>
             <CommentComponent v-for="comment in comments" :key="comment.id" :comment="comment" />
-          </div>
+          </q-list>
         </q-tab-panel>
         <q-tab-panel name="arguments">
           <div v-if="currentStatement?.supporting_arguments_count && currentStatement.supporting_arguments_count > 0">

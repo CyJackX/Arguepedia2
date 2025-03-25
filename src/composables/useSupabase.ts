@@ -11,7 +11,14 @@
 
 import { ref } from 'vue';
 import { supabase } from '../utils/supabase';
-import type { Statement, RelatedStatement, StatementType, Argument } from '../components/models';
+import type {
+  Statement,
+  RelatedStatement,
+  StatementType,
+  Argument,
+  TopicType,
+  Comment,
+} from '../components/models';
 import type { User } from '@supabase/supabase-js';
 
 export function useSupabase() {
@@ -243,6 +250,30 @@ export function useSupabase() {
     }
   };
 
+  const fetchComments = async (parent_id: number, parent_type: TopicType): Promise<Comment[]> => {
+    try {
+      console.log('Fetching comments for parent ID:', parent_id, 'parent type:', parent_type);
+      const { data, error } = await supabase
+        .from('comments')
+        .select('*, profiles (username)')
+        .eq('parent_id', parent_id)
+        .eq('parent_type', parent_type);
+
+      if (error) {
+        console.error('Error fetching comments:', error);
+        return [];
+      }
+      const comments = data.map((comment) => ({
+        ...comment,
+        username: comment.profiles.username,
+      }));
+      return comments || [];
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+      return [];
+    }
+  };
+
   return {
     getUser,
     onAuthStateChange,
@@ -254,5 +285,6 @@ export function useSupabase() {
     statementError,
     fetchConnectedStatements,
     updateVote,
+    fetchComments,
   };
 }
