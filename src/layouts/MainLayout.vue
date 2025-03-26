@@ -20,10 +20,7 @@
       <q-toolbar>
         <q-space />
         <q-input style="max-width: 600px; width: 80%" v-model="searchTerm" type="search" placeholder="Search"
-          class="q-px-md q-ma-md" @keyup.enter="handleSearch" dense outlined bg-color="white">
-          <template v-slot:append>
-            <q-icon name="search" @click="handleSearch" />
-          </template>
+          class="q-px-md q-ma-md" @update:model-value="debouncedSearch" dense outlined bg-color="white">
         </q-input>
         <q-space />
       </q-toolbar>
@@ -52,6 +49,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from 'src/stores/authStore';
+import { debounce } from 'lodash';
 
 const router = useRouter();
 const searchTerm = ref('');
@@ -92,6 +90,7 @@ onMounted(async () => {
 });
 
 const handleSearch = async () => {
+  console.log('handleSearch', searchTerm.value);
   if (searchTerm.value.trim()) {
     try {
       await router.push({
@@ -104,4 +103,6 @@ const handleSearch = async () => {
     }
   }
 };
+
+const debouncedSearch = debounce(handleSearch, 500);
 </script>
