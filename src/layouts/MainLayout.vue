@@ -11,8 +11,9 @@
         <q-tabs align="center" class="full-width">
           <q-route-tab to="/" label="Front Page" />
           <q-route-tab to="/about" label="About" />
-          <q-route-tab v-if="!auth.user?.value?.id" to="/auth" label="Login/Register" />
-          <q-route-tab v-else :to="userProfilePath" :label="userProfileLabel" />
+          <q-route-tab v-if="loadingUser" label="Loading..." />
+          <q-route-tab v-else-if="!auth.user?.value?.id" to="/auth" label="Login/Register" />
+          <q-route-tab v-else :to="userProfilePath" :label="loadingUser ? 'Loading...' : userProfileLabel" />
         </q-tabs>
       </q-toolbar>
 
@@ -55,6 +56,7 @@ import { useSupabase } from 'src/composables/useSupabase';
 const router = useRouter();
 const searchTerm = ref('');
 const auth = useSupabase();
+const loadingUser = ref(false);
 
 // Computed properties to handle null checks
 const userProfilePath = computed(() => {
@@ -79,7 +81,15 @@ const userProfileLabel = computed(() => {
 
 onMounted(async () => {
   if (auth.user.value && !auth.userProfile.value) {
-    await auth.fetchProfile(auth.user.value.id);
+    loadingUser.value = true;
+    try {
+      await auth.fetchProfile(auth.user.value.id);
+    } catch (error) {
+      console.error('Failed to fetch user profile:', error);
+      // Optionally show an error notification to the user
+    } finally {
+      loadingUser.value = false;
+    }
   }
 });
 
