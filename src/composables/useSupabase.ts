@@ -20,119 +20,11 @@ import type {
   Comment,
   Profile,
 } from '../components/models';
-import type { User } from '@supabase/supabase-js';
+import { useAuthStore } from '../stores/authStore';
 
 export function useSupabase() {
-  const user = ref<User | null>(null);
-  const loading = ref(false);
-  const error = ref<string | null>(null);
+  const authStore = useAuthStore();
   const userProfile = ref<Profile | null>(null);
-
-  /**
-   * Authentication Operations
-   */
-  const sendMagicLink = async (email: string) => {
-    try {
-      loading.value = true;
-      error.value = null;
-
-      const { error: signInError } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-
-      if (signInError) throw signInError;
-      return { success: true };
-    } catch (e) {
-      error.value = e instanceof Error ? e.message : 'An error occurred';
-      return { success: false, error: error.value };
-    } finally {
-      loading.value = false;
-    }
-  };
-
-  const signOut = async () => {
-    try {
-      loading.value = true;
-      error.value = null;
-
-      const { error: signOutError } = await supabase.auth.signOut();
-
-      if (signOutError) {
-        throw signOutError;
-      }
-    } catch (e) {
-      error.value = e instanceof Error ? e.message : 'An error occurred';
-    } finally {
-      loading.value = false;
-    }
-  };
-
-  const getUser = async () => {
-    const {
-      data: { user: currentUser },
-      error,
-    } = await supabase.auth.getUser();
-    if (error) {
-      console.error('Error fetching user:', error);
-      user.value = null;
-      userProfile.value = null;
-    } else {
-      user.value = currentUser;
-      if (currentUser) {
-        await fetchProfile(currentUser.id);
-      }
-    }
-    return user.value;
-  };
-
-  // Initialize user state
-  void getUser();
-
-  const onAuthStateChange = (callback: (event: string, session: unknown) => void) => {
-    return supabase.auth.onAuthStateChange((event, session) => {
-      user.value = session?.user ?? null;
-      callback?.(event, session);
-    });
-  };
-
-  const fetchProfile = async (userId: string) => {
-    try {
-      console.log('Fetching profile for user:', userId);
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-
-      if (error) throw error;
-      userProfile.value = data;
-      return data;
-    } catch (err) {
-      console.error('Error fetching profile:', err);
-      return null;
-    }
-  };
-
-  const updateProfile = async (profile: Partial<Profile>) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .update(profile)
-        .eq('id', user.value?.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      userProfile.value = data;
-      return data;
-    } catch (err) {
-      console.error('Error updating profile:', err);
-      return null;
-    }
-  };
 
   /**
    * Searches for statements similar to the provided text using fuzzy matching
@@ -174,40 +66,6 @@ export function useSupabase() {
       return { error: error instanceof Error ? error.message : 'Unknown error' };
     }
   };
-
-  // /**
-  //  * Statement Fetching Operations
-  //  */
-  // const getRandomStatementId = async () => {
-  //   console.log('Getting random statement ID');
-  //   try {
-  //     const { count, error: countError } = await supabase
-  //       .from('statement')
-  //       .select('*', { count: 'exact', head: true });
-
-  //     if (countError) {
-  //       console.error('Error getting statement count:', countError);
-  //       return null;
-  //     }
-
-  //     const randomIndex = Math.floor(Math.random() * count);
-  //     const { data, error } = await supabase
-  //       .from('statement')
-  //       .select('id')
-  //       .range(randomIndex, randomIndex)
-  //       .single();
-
-  //     if (error) {
-  //       console.error('Error getting random statement:', error);
-  //       return null;
-  //     }
-
-  //     return data.id;
-  //   } catch (err) {
-  //     console.error('Unexpected error in getRandomStatementId:', err);
-  //     return null;
-  //   }
-  // };
 
   /**
    * Fetches a statement from the database by ID or gets a random statement if no ID provided
@@ -319,7 +177,7 @@ export function useSupabase() {
 
       if (error) throw error;
       console.log(
-        `User ${user.value?.id}'s vote on relationship #${relationshipId} has been updated to:`,
+        `User ${authStore.user?.id}'s vote on relationship #${relationshipId} has been updated to:`,
         data,
       );
 
@@ -355,19 +213,40 @@ export function useSupabase() {
     }
   };
 
+  const createComment = async (
+    parent_id: number,
+    parent_type: TopicType,
+    content: string,
+  ): Promise<Comment | null> => {
+    try {
+      const { data, error } = await supabase
+        .from('comments')
+        .insert({
+          user_id: authStore.user?.id,
+          parent_id,
+          parent_type,
+          content,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error creating comment:', error);
+      return null;
+    }
+  };
+
   return {
-    getUser,
-    onAuthStateChange,
     searchStatements,
     createNewStatement,
     fetchStatement,
     fetchArguments_by_conclusion,
-    user, // Export the user ref
     fetchConnectedStatements,
     updateVote,
     fetchComments,
+    createComment,
+    auth: authStore,
     userProfile,
-    fetchProfile,
-    updateProfile,
   };
 }

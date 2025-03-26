@@ -1,69 +1,30 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useSupabase } from '../composables/useSupabase';
-import { supabase } from '../utils/supabase';
+import { ref, computed } from 'vue';
+import { useAuthStore } from '../stores/authStore';
 
 const email = ref('');
 const password = ref('');
-const loading = ref(false);
-const error = ref<string | null>(null);
 const otpSent = ref(false);
+const authStore = useAuthStore();
 
-const handleGoogleSignIn = async () => {
-  loading.value = true;
-  error.value = null;
-  try {
-    const { error: authError } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`
-      }
-    });
-    if (authError) throw authError;
-  } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Failed to sign in';
-  } finally {
-    loading.value = false;
-  }
+// Expose loading and error from the store
+const loading = computed(() => authStore.loading);
+const error = computed(() => authStore.error);
+
+const handleGoogleSignIn = () => {
+  void authStore.signInWithGoogle();
 };
 
-const handleEmailSignIn = async () => {
+const handleEmailSignIn = () => {
   if (!email.value || !password.value) return;
-
-  loading.value = true;
-  error.value = null;
-  try {
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email: email.value,
-      password: password.value
-    });
-    if (authError) throw authError;
-  } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Failed to sign in';
-  } finally {
-    loading.value = false;
-  }
+  void authStore.signInWithPassword(email.value, password.value);
 };
 
-const handleOTPSignIn = async () => {
+const handleOTPSignIn = () => {
   if (!email.value) return;
-
-  loading.value = true;
-  error.value = null;
-  try {
-    const { error: authError } = await supabase.auth.signInWithOtp({
-      email: email.value,
-      options: {
-        emailRedirectTo: `${window.location.origin}/`
-      }
-    });
-    if (authError) throw authError;
+  void authStore.signInWithOTP(email.value).then(() => {
     otpSent.value = true;
-  } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Failed to send magic link';
-  } finally {
-    loading.value = false;
-  }
+  });
 };
 </script>
 
@@ -83,6 +44,15 @@ const handleOTPSignIn = async () => {
           <q-input v-model="email" type="email" label="Email" outlined class="q-mb-md" :disable="loading" />
 
           <q-btn unelevated color="primary" class="full-width" label="Send Magic Link" type="submit"
+            :loading="loading" />
+        </q-form>
+
+        <div class="text-center q-my-md text-grey">or</div>
+
+        <q-form @submit.prevent="handleEmailSignIn">
+          <q-input v-model="password" type="password" label="Password" outlined class="q-mb-md" :disable="loading" />
+
+          <q-btn unelevated color="primary" class="full-width" label="Sign In with Password" type="submit"
             :loading="loading" />
         </q-form>
       </template>

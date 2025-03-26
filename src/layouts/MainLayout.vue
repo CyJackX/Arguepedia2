@@ -12,7 +12,7 @@
           <q-route-tab to="/" label="Front Page" />
           <q-route-tab to="/about" label="About" />
           <q-route-tab v-if="loadingUser" label="Loading..." />
-          <q-route-tab v-else-if="!auth.user?.value?.id" to="/auth" label="Login/Register" />
+          <q-route-tab v-else-if="!authStore.user?.id" to="/auth" label="Login/Register" />
           <q-route-tab v-else :to="userProfilePath" :label="loadingUser ? 'Loading...' : userProfileLabel" />
         </q-tabs>
       </q-toolbar>
@@ -51,42 +51,40 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import { useSupabase } from 'src/composables/useSupabase';
+import { useAuthStore } from 'src/stores/authStore';
 
 const router = useRouter();
 const searchTerm = ref('');
-const auth = useSupabase();
+const authStore = useAuthStore();
 const loadingUser = ref(false);
 
-// Computed properties to handle null checks
 const userProfilePath = computed(() => {
-  if (auth.userProfile.value) {
-    return `/user/${auth.userProfile.value.username}`
-  } else if (auth.user.value) {
-    return `/user/${auth.user.value.id}`
+  if (authStore.userProfile) {
+    return `/user/${authStore.userProfile.username}`
+  } else if (authStore.user) {
+    return `/user/${authStore.user.id}`
   } else {
     return '/user/profile'
   }
 });
 
 const userProfileLabel = computed(() => {
-  if (auth.userProfile.value) {
-    return auth.userProfile.value.username
-  } else if (auth.user.value) {
-    return auth.user.value.id
+  if (authStore.userProfile) {
+    return authStore.userProfile.username
+  } else if (authStore.user) {
+    return authStore.user.id
   } else {
     return 'Profile'
   }
 });
 
 onMounted(async () => {
-  if (auth.user.value && !auth.userProfile.value) {
+  if (authStore.user && !authStore.userProfile) {
     loadingUser.value = true;
     try {
-      await auth.fetchProfile(auth.user.value.id);
+      await authStore.fetchProfile(authStore.user.id);
     } catch (error) {
       console.error('Failed to fetch user profile:', error);
-      // Optionally show an error notification to the user
     } finally {
       loadingUser.value = false;
     }

@@ -11,9 +11,9 @@ const props = defineProps<{
 const replies = ref<Comment[]>([]);
 const replying = ref(false);
 const reply = ref('');
+const supabase = useSupabase();
 
 onMounted(async () => {
-  const supabase = useSupabase();
   replies.value = await supabase.fetchComments(props.comment.id, 'comment');
 });
 
@@ -21,10 +21,14 @@ const replyToComment = () => {
   replying.value = true;
 }
 
-const sendReply = () => {
-  console.log('sendReply');
-  replying.value = false;
-  reply.value = '';
+const sendReply = async () => {
+  const newComment = await supabase.createComment(props.comment.id, 'comment', reply.value);
+  if (newComment) {
+    replies.value.unshift(newComment);
+    replying.value = false;
+    reply.value = '';
+  }
+
 }
 
 </script>
