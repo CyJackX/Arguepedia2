@@ -23,12 +23,7 @@ export interface SearchResult extends Statement {
 }
 
 export interface RelatedStatement extends Statement {
-  relationship_id: number;
-  relationship_type: StatementType;
-  upvotes: number;
-  score: number;
-  downvotes: number;
-  users_vote: boolean | null;
+  position: number;
 }
 
 export interface Argument {
@@ -55,6 +50,7 @@ export interface Comment {
   content: string;
   username: string;
   created_at: string;
+  //TODO: descendants_count: number;
 }
 
 export interface Profile {

@@ -1,3 +1,65 @@
+<script setup lang="ts">
+import { ref, onMounted, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuthStore } from 'src/stores/authStore';
+import { debounce } from 'lodash';
+
+const router = useRouter();
+const searchTerm = ref('');
+const authStore = useAuthStore();
+const loadingUser = ref(false);
+
+const userProfilePath = computed(() => {
+  if (authStore.userProfile) {
+    return `/user/${authStore.userProfile.username}`
+  } else if (authStore.user) {
+    return `/user/${authStore.user.id}`
+  } else {
+    return '/user/profile'
+  }
+});
+
+const userProfileLabel = computed(() => {
+  if (authStore.userProfile) {
+    return authStore.userProfile.username
+  } else if (authStore.user) {
+    return authStore.user.id
+  } else {
+    return 'Profile'
+  }
+});
+
+onMounted(async () => {
+  if (authStore.user && !authStore.userProfile) {
+    loadingUser.value = true;
+    try {
+      await authStore.fetchProfile(authStore.user.id);
+    } catch (error) {
+      console.error('Failed to fetch user profile:', error);
+    } finally {
+      loadingUser.value = false;
+    }
+  }
+});
+
+const handleSearch = async () => {
+
+  if (searchTerm.value.trim()) {
+    console.log('handleSearch', searchTerm.value);
+    try {
+      await router.push({
+        path: '/search',
+        query: { q: searchTerm.value }
+      });
+    } catch (error) {
+      console.error('Navigation error:', error);
+      // Handle navigation failure if needed
+    }
+  }
+};
+
+const debouncedSearch = debounce(handleSearch, 500);
+</script>
 <template>
   <q-layout view="hHh lpR fFf">
     <q-header class="bg-primary text-white" height-hint="98">
@@ -44,65 +106,3 @@
 
   </q-layout>
 </template>
-
-<script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
-import { useRouter } from 'vue-router';
-import { useAuthStore } from 'src/stores/authStore';
-import { debounce } from 'lodash';
-
-const router = useRouter();
-const searchTerm = ref('');
-const authStore = useAuthStore();
-const loadingUser = ref(false);
-
-const userProfilePath = computed(() => {
-  if (authStore.userProfile) {
-    return `/user/${authStore.userProfile.username}`
-  } else if (authStore.user) {
-    return `/user/${authStore.user.id}`
-  } else {
-    return '/user/profile'
-  }
-});
-
-const userProfileLabel = computed(() => {
-  if (authStore.userProfile) {
-    return authStore.userProfile.username
-  } else if (authStore.user) {
-    return authStore.user.id
-  } else {
-    return 'Profile'
-  }
-});
-
-onMounted(async () => {
-  if (authStore.user && !authStore.userProfile) {
-    loadingUser.value = true;
-    try {
-      await authStore.fetchProfile(authStore.user.id);
-    } catch (error) {
-      console.error('Failed to fetch user profile:', error);
-    } finally {
-      loadingUser.value = false;
-    }
-  }
-});
-
-const handleSearch = async () => {
-  console.log('handleSearch', searchTerm.value);
-  if (searchTerm.value.trim()) {
-    try {
-      await router.push({
-        path: '/search',
-        query: { q: searchTerm.value }
-      });
-    } catch (error) {
-      console.error('Navigation error:', error);
-      // Handle navigation failure if needed
-    }
-  }
-};
-
-const debouncedSearch = debounce(handleSearch, 500);
-</script>

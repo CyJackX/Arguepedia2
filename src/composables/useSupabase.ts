@@ -89,9 +89,9 @@ export function useSupabase() {
   const fetchArguments_by_conclusion = async (
     conclusion_id: number,
     argument_type: StatementType,
-    offset: number,
-    limit: number,
-  ): Promise<Argument[] | null> => {
+    offset: number = 0,
+    limit: number = 10,
+  ): Promise<Argument[]> => {
     console.log(
       `Fetching arguments for conclusion ID ${conclusion_id} and statement type ${argument_type}`,
     );
@@ -119,7 +119,12 @@ export function useSupabase() {
       }
 
       console.log(`Successfully fetched arguments:`, data);
-      return data;
+      const args = data.map((argument) => ({
+        ...argument,
+        username: argument.profiles.username,
+        vote_value: argument.argument_votes.vote_value,
+      }));
+      return args;
     } catch (err) {
       console.error('Arguments fetch error:', err);
       throw err;
@@ -129,37 +134,16 @@ export function useSupabase() {
   /**
    * Fetches statements connected to a given statement ID with a specific relationship type
    */
-  const fetchConnectedStatements = async (
-    statementId: number,
-    statementType: StatementType,
-    offset = 0,
-    limit = 10,
-  ): Promise<RelatedStatement[]> => {
-    console.log(
-      `Fetching ${limit} "${statementType.toLowerCase()}" statements for statement ID ${statementId}, starting at offset ${offset}`,
-    );
-    try {
-      // Call the stored procedure to get connected statements ordered by score
-      const { data, error } = await supabase.rpc('get_statements_by_relationship', {
-        p_id: statementId,
-        p_statement_type: statementType,
-        p_offset: offset,
-        p_limit: limit,
-      });
-
-      if (error) {
-        console.error('Error fetching connected statements:', error);
-        return [];
-      }
-      console.log(
-        `Found ${data?.length || 0} connected statements of type ${statementType} for statement ID ${statementId}:`,
-        data,
-      );
-      return data || [];
-    } catch (err) {
-      console.error('Unexpected error in fetchConnectedStatements:', err);
+  const fetchConnectedStatements = async (p_argument_id: number): Promise<RelatedStatement[]> => {
+    console.log(`Fetching connected statements for argument ID ${p_argument_id}`);
+    const { data, error } = await supabase.rpc('get_statements_with_positions', {
+      p_argument_id: p_argument_id,
+    });
+    if (error) {
+      console.error('Error fetching connected statements:', error);
       return [];
     }
+    return data || [];
   };
 
   /**
