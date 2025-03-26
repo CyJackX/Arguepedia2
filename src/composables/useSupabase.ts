@@ -18,17 +18,58 @@ import type {
   Argument,
   TopicType,
   Comment,
+  Profile,
 } from '../components/models';
 import type { User } from '@supabase/supabase-js';
 
 export function useSupabase() {
-  const user = ref<User | null>(null); // Add user state with proper type
-  const statementError = ref<string | null>(null);
+  const user = ref<User | null>(null);
+  const loading = ref(false);
+  const error = ref<string | null>(null);
+  const userProfile = ref<Profile | null>(null);
 
   /**
    * Authentication Operations
-   * Handle user session management and auth state changes
    */
+  const sendMagicLink = async (email: string) => {
+    try {
+      loading.value = true;
+      error.value = null;
+
+      const { error: signInError } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (signInError) throw signInError;
+      return { success: true };
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'An error occurred';
+      return { success: false, error: error.value };
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const signOut = async () => {
+    try {
+      loading.value = true;
+      error.value = null;
+
+      const { error: signOutError } = await supabase.auth.signOut();
+
+      if (signOutError) {
+        throw signOutError;
+      }
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'An error occurred';
+    } finally {
+      loading.value = false;
+    }
+  };
+
   const getUser = async () => {
     const {
       data: { user: currentUser },
@@ -37,20 +78,56 @@ export function useSupabase() {
     if (error) {
       console.error('Error fetching user:', error);
       user.value = null;
+      userProfile.value = null;
     } else {
       user.value = currentUser;
+      if (currentUser) {
+        await fetchProfile(currentUser.id);
+      }
     }
     return user.value;
   };
 
   // Initialize user state
-  void getUser(); // Add void to explicitly ignore promise
+  void getUser();
 
   const onAuthStateChange = (callback: (event: string, session: unknown) => void) => {
     return supabase.auth.onAuthStateChange((event, session) => {
-      user.value = session?.user ?? null; // Use nullish coalescing
+      user.value = session?.user ?? null;
       callback?.(event, session);
     });
+  };
+
+  const fetchProfile = async (userId: string) => {
+    try {
+      console.log('Fetching profile for user:', userId);
+      const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+
+      if (error) throw error;
+      userProfile.value = data;
+      return data;
+    } catch (err) {
+      console.error('Error fetching profile:', err);
+      return null;
+    }
+  };
+
+  const updateProfile = async (profile: Partial<Profile>) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(profile)
+        .eq('id', user.value?.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      userProfile.value = data;
+      return data;
+    } catch (err) {
+      console.error('Error updating profile:', err);
+      return null;
+    }
   };
 
   /**
@@ -282,9 +359,11 @@ export function useSupabase() {
     fetchStatement,
     fetchArguments_by_conclusion,
     user, // Export the user ref
-    statementError,
     fetchConnectedStatements,
     updateVote,
     fetchComments,
+    userProfile,
+    fetchProfile,
+    updateProfile,
   };
 }

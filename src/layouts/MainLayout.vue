@@ -11,6 +11,8 @@
         <q-tabs align="center" class="full-width">
           <q-route-tab to="/" label="Front Page" />
           <q-route-tab to="/about" label="About" />
+          <q-route-tab v-if="!auth.user?.value?.id" to="/auth" label="Login/Register" />
+          <q-route-tab v-else :to="userProfilePath" :label="userProfileLabel" />
         </q-tabs>
       </q-toolbar>
 
@@ -46,11 +48,40 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { useSupabase } from 'src/composables/useSupabase';
 
 const router = useRouter();
 const searchTerm = ref('');
+const auth = useSupabase();
+
+// Computed properties to handle null checks
+const userProfilePath = computed(() => {
+  if (auth.userProfile.value) {
+    return `/user/${auth.userProfile.value.username}`
+  } else if (auth.user.value) {
+    return `/user/${auth.user.value.id}`
+  } else {
+    return '/user/profile'
+  }
+});
+
+const userProfileLabel = computed(() => {
+  if (auth.userProfile.value) {
+    return auth.userProfile.value.username
+  } else if (auth.user.value) {
+    return auth.user.value.id
+  } else {
+    return 'Profile'
+  }
+});
+
+onMounted(async () => {
+  if (auth.user.value && !auth.userProfile.value) {
+    await auth.fetchProfile(auth.user.value.id);
+  }
+});
 
 const handleSearch = async () => {
   if (searchTerm.value.trim()) {

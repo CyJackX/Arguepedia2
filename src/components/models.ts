@@ -56,3 +56,8 @@ export interface Comment {
   username: string;
   created_at: string;
 }
+
+export interface Profile {
+  id: string;
+  username: string;
+}

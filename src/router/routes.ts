@@ -21,7 +21,20 @@ const routes: RouteRecordRaw[] = [
         path: 'statement/:id',
         component: () => import('pages/StatementPage.vue'),
       },
+      {
+        path: 'auth',
+        component: () => import('pages/AuthPage.vue'),
+      },
+      {
+        path: 'user/:id',
+        component: () => import('pages/UserPage.vue'),
+      },
     ],
+  },
+  {
+    path: '/auth/callback',
+    name: 'AuthCallback',
+    component: () => import('pages/AuthCallback.vue'),
   },
 
   // Always leave this as last one
