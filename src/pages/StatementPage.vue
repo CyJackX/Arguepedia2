@@ -1,18 +1,21 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useStatementStore } from '../stores/statementStore';
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useSupabase } from '../composables/useSupabase';
-import type { Comment } from '../components/models';
+import type { Comment, Argument } from '../components/models';
 import CommentComponent from '../components/CommentComponent.vue';
-
+import ArgumentComponent from '../components/ArgumentComponent.vue';
 const route = useRoute();
 const statementId = route.params.id;
 const statementStore = useStatementStore();
 const supabase = useSupabase();
 const isLoading = ref(true);
-const activeTab = ref('comments');
+const activeTab = ref(route.query.tab?.toString() || 'comments');
 const currentStatement = computed(() => statementStore.currentStatement);
+const opposingArguments = ref<Argument[]>([]);
+const supportingArguments = ref<Argument[]>([]);
+const router = useRouter();
 
 const loadStatement = async () => {
   if (!statementStore.currentStatement) {
@@ -31,6 +34,12 @@ const comments = ref<Comment[]>([]);
 onMounted(async () => {
   void loadStatement();
   comments.value = await supabase.fetchComments(parseInt(statementId as string), 'statement');
+  supportingArguments.value = await supabase.fetchArguments_by_conclusion(parseInt(statementId as string), 'SUPPORTS');
+  opposingArguments.value = await supabase.fetchArguments_by_conclusion(parseInt(statementId as string), 'OPPOSES');
+});
+
+watch(activeTab, (newTab) => {
+  router.replace({ query: { ...route.query, tab: newTab } });
 });
 </script>
 
@@ -74,7 +83,7 @@ onMounted(async () => {
         <q-tab-panel name="opposing">
           <h3>Opposing Arguments</h3>
           <div v-if="currentStatement?.opposing_arguments_count && currentStatement.opposing_arguments_count > 0">
-
+            <ArgumentComponent v-for="argument in opposingArguments" :key="argument.id" :argument="argument" />
           </div>
         </q-tab-panel>
       </q-tab-panels>
