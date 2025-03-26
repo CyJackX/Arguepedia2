@@ -11,6 +11,7 @@ const props = defineProps<{
 const replies = ref<Comment[]>([]);
 const replying = ref(false);
 const reply = ref('');
+const expanded = ref(false);
 const supabase = useSupabase();
 
 onMounted(async () => {
@@ -52,9 +53,11 @@ const sendReply = async () => {
       <q-input class="q-mb-sm" outlined autogrow maxlength="200" v-model="reply" />
       <q-btn label="Reply" @click="sendReply" />
     </div>
-    <q-list dense>
-      <CommentComponent v-for="reply in replies" :key="reply.id" :comment="reply" />
-    </q-list>
+    <q-expansion-item v-model="expanded">
+      <q-list dense v-if="expanded">
+        <CommentComponent v-for="reply in replies" :key="reply.id" :comment="reply" />
+      </q-list>
+    </q-expansion-item>
   </div>
 </template>
 
