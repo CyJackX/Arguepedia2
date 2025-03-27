@@ -32,27 +32,28 @@ watch(expanded, async (newValue) => {
 
 <template>
   <q-card bordered>
-    <q-card-section horizontal>
-      <div class="text-h6">{{ props.argument.title }}</div>
-    </q-card-section>
-    <q-card-section horizontal>
-      <div class="text-body1">by {{ props.argument.username }}</div>
-    </q-card-section>
-    <q-card-section>
-      <q-expansion-item v-model="expanded">
-        <q-list dense separator outlined>
-          <q-item v-for="statement in argumentStatements" :key="statement.id">
-            <q-item-section>
-              <q-item-label>{{ statement.statement_text }}</q-item-label>
-            </q-item-section>
-          </q-item>
-          <q-item>
-            <q-item-section>
-              <q-item-label>Therefore: {{ conclusion?.statement_text }}</q-item-label>
-            </q-item-section>
-          </q-item>
-        </q-list>
-      </q-expansion-item>
-    </q-card-section>
+    <q-expansion-item v-model="expanded">
+      <template #header>
+        <q-item-section>
+          <div class="text-body1 text-weight-bold">{{ props.argument.title }}</div>
+          <div class="text-caption">by {{ props.argument.username }}</div>
+          <div class="text-caption">
+            <b>↑</b>{{ props.argument.upvotes - props.argument.downvotes }}<b>↓</b>
+          </div>
+        </q-item-section>
+      </template>
+      <q-list dense separator outlined>
+        <q-item v-for="statement in argumentStatements" :key="statement.id">
+          <q-item-section>
+            <q-item-label>{{ statement.statement_text }}</q-item-label>
+          </q-item-section>
+        </q-item>
+        <q-item>
+          <q-item-section>
+            <q-item-label>Therefore: {{ conclusion?.statement_text }}</q-item-label>
+          </q-item-section>
+        </q-item>
+      </q-list>
+    </q-expansion-item>
   </q-card>
 </template>
