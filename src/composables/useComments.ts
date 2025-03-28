@@ -17,7 +17,8 @@ export function useCommentReplies() {
         .from('comments')
         .select('*, profiles (username)')
         .eq('parent_id', parent_id)
-        .eq('parent_type', parent_type);
+        .eq('parent_type', parent_type)
+        .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching comments:', error);
@@ -66,12 +67,16 @@ export function useCommentReplies() {
     expanded.value = !expanded.value;
   };
 
-  const sendReply = async (parentId: number, parentType: TopicType) => {
+  const sendReply = async (parentId: number, parentType: TopicType): Promise<Comment | null> => {
+    console.log('Sending reply to', parentId, 'parent type:', parentType, 'reply:', reply.value);
     const newComment = await createComment(parentId, parentType, reply.value);
     if (newComment) {
-      comments.value.unshift(newComment);
       replying.value = false;
       reply.value = '';
+      return newComment;
+    } else {
+      console.error('API Error sending reply:');
+      return null;
     }
   };
 

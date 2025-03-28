@@ -32,7 +32,7 @@ onMounted(async () => {
       <q-item-label caption>
         <span v-if="hasReplies" @click="toggleExpanded" style="cursor: pointer" class="q-mr-xs">{{
           expandedIcon
-        }}</span>
+          }}</span>
         <span @click="toggleReplying" style="cursor: pointer">Reply</span> to <span style="cursor: pointer"
           @click="$router.push(`/user/${comment.username}`)">{{
             comment.username
@@ -43,7 +43,7 @@ onMounted(async () => {
   </q-item>
   <q-item v-if="replying">
     <q-item-section class="q-pl-md">
-      <ReplyBox :parent-id="comment.id" :parent-type="'comment'" />
+      <ReplyBox :parent-id="comment.id" :parent-type="'comment'" @reply="(comment) => comments.unshift(comment)" />
     </q-item-section>
   </q-item>
   <q-list dense class="q-pl-md" v-if="expanded">
@@ -51,4 +51,8 @@ onMounted(async () => {
   </q-list>
 </template>
 
-<style scoped></style>
+<style scoped>
+q-item-section {
+  border-left: 1px solid #ccc;
+}
+</style>

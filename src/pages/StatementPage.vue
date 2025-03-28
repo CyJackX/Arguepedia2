@@ -72,7 +72,8 @@ watch(activeTab, async (newTab) => {
         <q-tab-panel name="comments">
           <q-item>
             <q-item-section>
-              <ReplyBox :parent-id="statementStore.currentStatement?.id as number" :parent-type="'statement'" />
+              <ReplyBox :parent-id="statementStore.currentStatement?.id as number" :parent-type="'statement'"
+                @reply="(comment) => comments.unshift(comment)" />
             </q-item-section>
           </q-item>
           <div v-if="currentStatement?.comments_count && currentStatement.comments_count === 0">
