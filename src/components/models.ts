@@ -50,7 +50,7 @@ export interface Comment {
   content: string;
   username: string;
   created_at: string;
-  //TODO: descendants_count: number;
+  comments_count: number;
 }
 
 export interface Profile {

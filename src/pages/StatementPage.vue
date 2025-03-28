@@ -6,6 +6,8 @@ import { useSupabase } from '../composables/useSupabase';
 import type { Comment, Argument } from '../components/models';
 import CommentComponent from '../components/CommentComponent.vue';
 import ArgumentComponent from '../components/ArgumentComponent.vue';
+import { useCommentReplies } from '../composables/useComments';
+
 const route = useRoute();
 const statementId = route.params.id;
 const statementStore = useStatementStore();
@@ -16,7 +18,7 @@ const currentStatement = computed(() => statementStore.currentStatement);
 const opposingArguments = ref<Argument[]>([]);
 const supportingArguments = ref<Argument[]>([]);
 const router = useRouter();
-
+const { comments, fetchComments, sendReply } = useCommentReplies();
 const loadStatement = async () => {
   if (!statementStore.currentStatement) {
     try {
@@ -29,11 +31,10 @@ const loadStatement = async () => {
   isLoading.value = false;
 };
 
-const comments = ref<Comment[]>([]);
 
 onMounted(async () => {
   void loadStatement();
-  comments.value = await supabase.fetchComments(parseInt(statementId as string), 'statement');
+  comments.value = await fetchComments(parseInt(statementId as string), 'statement');
   supportingArguments.value = await supabase.fetchArguments_by_conclusion(parseInt(statementId as string), 'SUPPORTS');
   opposingArguments.value = await supabase.fetchArguments_by_conclusion(parseInt(statementId as string), 'OPPOSES');
 });

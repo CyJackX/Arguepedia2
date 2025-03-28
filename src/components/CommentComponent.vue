@@ -1,68 +1,58 @@
 <script setup lang="ts">
 import type { Comment } from './models';
-import { ref, onMounted } from 'vue';
-import { useSupabase } from '../composables/useSupabase';
+import { computed, onMounted } from 'vue';
+import { useCommentReplies } from '../composables/useComments';
 import { format } from 'timeago.js';
 
 const props = defineProps<{
   comment: Comment;
 }>();
 
-const replies = ref<Comment[]>([]);
-const replying = ref(false);
-const reply = ref('');
-const expanded = ref(false);
-const supabase = useSupabase();
+const {
+  comments,
+  replying,
+  reply,
+  expanded,
+  fetchComments,
+  toggleExpanded,
+  toggleReplying,
+  sendReply
+} = useCommentReplies();
+
+const hasReplies = computed(() => comments.value.length > 0);
+const expandedIcon = computed(() => (expanded.value ? '⊖' : '⊕'));
 
 onMounted(async () => {
-  replies.value = await supabase.fetchComments(props.comment.id, 'comment');
+  comments.value = await fetchComments(props.comment.id, 'comment');
 });
-
-const replyToComment = () => {
-  replying.value = true;
-}
-
-const sendReply = async () => {
-  const newComment = await supabase.createComment(props.comment.id, 'comment', reply.value);
-  if (newComment) {
-    replies.value.unshift(newComment);
-    replying.value = false;
-    reply.value = '';
-  }
-
-}
-
 </script>
 
 <template>
-  <q-item dense>
+  <q-item>
     <q-item-section>
-      <q-item-label>{{ comment.content }}
-      </q-item-label>
+      <q-item-label>{{ comment.content }}</q-item-label>
       <q-item-label caption>
-        <q-btn flat dense no-caps @click="replyToComment">
-          <template #default>
-            Reply to {{ comment.username }} • {{ format(comment.created_at) }}
-          </template>
-        </q-btn>
+        <span v-if="hasReplies" @click="toggleExpanded" style="cursor: pointer" class="q-mr-xs">{{
+          expandedIcon
+        }}</span>
+        <span @click="toggleReplying" style="cursor: pointer">Reply</span> to <span style="cursor: pointer"
+          @click="$router.push(`/user/${comment.username}`)">{{
+            comment.username
+          }}</span> •
+        <span>{{ format(comment.created_at) }}</span>
       </q-item-label>
     </q-item-section>
   </q-item>
-  <div class="q-ml-md replies q-pl-sm">
-    <div v-if="replying" class="reply-form q-ma-sm">
-      <q-input class="q-mb-sm" outlined autogrow maxlength="200" v-model="reply" />
-      <q-btn label="Reply" @click="sendReply" />
-    </div>
-    <q-expansion-item v-model="expanded">
-      <q-list dense v-if="expanded">
-        <CommentComponent v-for="reply in replies" :key="reply.id" :comment="reply" />
-      </q-list>
-    </q-expansion-item>
-  </div>
+
+  <q-list dense class="q-pl-md">
+    <q-item v-if="replying">
+      <q-item-section>
+        <q-input outlined v-model="reply" />
+        <q-btn @click="sendReply(comment.id, 'comment')">Send</q-btn>
+      </q-item-section>
+    </q-item>
+    <CommentComponent v-if="expanded" v-for="reply in comments" :key="reply.id" :comment="reply" />
+  </q-list>
 </template>
 
-<style scoped>
-.replies {
-  border-left: 1px solid #ccc;
-}
-</style>
+<style scoped></style>
