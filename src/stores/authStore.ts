@@ -3,8 +3,10 @@ import { ref } from 'vue';
 import { supabase } from 'src/utils/supabase';
 import type { User } from '@supabase/supabase-js';
 import type { Profile } from '../components/models';
+import { useRouter } from 'vue-router';
 
 export const useAuthStore = defineStore('auth', () => {
+  const router = useRouter();
   const user = ref<User | null>(null);
   const userProfile = ref<Profile | null>(null);
   const loading = ref(false);
@@ -75,15 +77,18 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true;
     error.value = null;
     try {
+      console.log('Signing in with password:', email);
       const { error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       if (authError) throw authError;
     } catch (e) {
+      console.error('Error signing in with password:', e);
       error.value = e instanceof Error ? e.message : 'Failed to sign in';
       throw e;
     } finally {
+      console.log('Signing in with password:', email, 'done');
       loading.value = false;
     }
   }
@@ -116,8 +121,26 @@ export const useAuthStore = defineStore('auth', () => {
       if (signOutError) throw signOutError;
       user.value = null;
       userProfile.value = null;
+      await router.push('/');
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Failed to sign out';
+      throw e;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function updatePassword(newPassword: string) {
+    loading.value = true;
+    error.value = null;
+    try {
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+      if (updateError) throw updateError;
+      return true;
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'Failed to update password';
       throw e;
     } finally {
       loading.value = false;
@@ -148,6 +171,7 @@ export const useAuthStore = defineStore('auth', () => {
     signInWithPassword,
     signInWithOTP,
     signOut,
+    updatePassword,
     onAuthStateChange,
   };
 });
