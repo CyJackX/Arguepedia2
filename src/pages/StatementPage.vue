@@ -3,10 +3,11 @@ import { useRoute, useRouter } from 'vue-router';
 import { useStatementStore } from '../stores/statementStore';
 import { ref, onMounted, computed, watch } from 'vue';
 import { useSupabase } from '../composables/useSupabase';
-import type { Comment, Argument } from '../components/models';
+import type { Argument } from '../components/models';
 import CommentComponent from '../components/CommentComponent.vue';
 import ArgumentComponent from '../components/ArgumentComponent.vue';
 import { useCommentReplies } from '../composables/useComments';
+import ReplyBox from '../components/ReplyBox.vue';
 
 const route = useRoute();
 const statementId = route.params.id;
@@ -18,7 +19,8 @@ const currentStatement = computed(() => statementStore.currentStatement);
 const opposingArguments = ref<Argument[]>([]);
 const supportingArguments = ref<Argument[]>([]);
 const router = useRouter();
-const { comments, fetchComments, sendReply } = useCommentReplies();
+const { comments, fetchComments } = useCommentReplies();
+
 const loadStatement = async () => {
   if (!statementStore.currentStatement) {
     try {
@@ -39,8 +41,8 @@ onMounted(async () => {
   opposingArguments.value = await supabase.fetchArguments_by_conclusion(parseInt(statementId as string), 'OPPOSES');
 });
 
-watch(activeTab, (newTab) => {
-  router.replace({ query: { ...route.query, tab: newTab } });
+watch(activeTab, async (newTab) => {
+  await router.replace({ query: { ...route.query, tab: newTab } });
 });
 </script>
 
@@ -68,11 +70,15 @@ watch(activeTab, (newTab) => {
 
       <q-tab-panels v-model="activeTab" animated>
         <q-tab-panel name="comments">
-          <h3>Comments</h3>
+          <q-item>
+            <q-item-section>
+              <ReplyBox :parent-id="statementStore.currentStatement?.id as number" :parent-type="'statement'" />
+            </q-item-section>
+          </q-item>
           <div v-if="currentStatement?.comments_count && currentStatement.comments_count === 0">
             No Comments
           </div>
-          <q-list v-else>
+          <q-list dense v-else>
             <CommentComponent v-for="comment in comments" :key="comment.id" :comment="comment" />
           </q-list>
         </q-tab-panel>

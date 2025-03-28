@@ -3,7 +3,7 @@ import type { Comment } from './models';
 import { computed, onMounted } from 'vue';
 import { useCommentReplies } from '../composables/useComments';
 import { format } from 'timeago.js';
-
+import ReplyBox from './ReplyBox.vue';
 const props = defineProps<{
   comment: Comment;
 }>();
@@ -11,12 +11,10 @@ const props = defineProps<{
 const {
   comments,
   replying,
-  reply,
   expanded,
   fetchComments,
   toggleExpanded,
-  toggleReplying,
-  sendReply
+  toggleReplying
 } = useCommentReplies();
 
 const hasReplies = computed(() => comments.value.length > 0);
@@ -29,7 +27,7 @@ onMounted(async () => {
 
 <template>
   <q-item>
-    <q-item-section>
+    <q-item-section class="q-pa-xs">
       <q-item-label>{{ comment.content }}</q-item-label>
       <q-item-label caption>
         <span v-if="hasReplies" @click="toggleExpanded" style="cursor: pointer" class="q-mr-xs">{{
@@ -43,15 +41,13 @@ onMounted(async () => {
       </q-item-label>
     </q-item-section>
   </q-item>
-
-  <q-list dense class="q-pl-md">
-    <q-item v-if="replying">
-      <q-item-section>
-        <q-input outlined v-model="reply" />
-        <q-btn @click="sendReply(comment.id, 'comment')">Send</q-btn>
-      </q-item-section>
-    </q-item>
-    <CommentComponent v-if="expanded" v-for="reply in comments" :key="reply.id" :comment="reply" />
+  <q-item v-if="replying">
+    <q-item-section class="q-pl-md">
+      <ReplyBox :parent-id="comment.id" :parent-type="'comment'" />
+    </q-item-section>
+  </q-item>
+  <q-list dense class="q-pl-md" v-if="expanded">
+    <CommentComponent v-for="reply in comments" :key="reply.id" :comment="reply" />
   </q-list>
 </template>
 
