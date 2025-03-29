@@ -30,14 +30,16 @@ onMounted(async () => {
     <q-item-section class="q-pa-xs">
       <q-item-label>{{ comment.content }}</q-item-label>
       <q-item-label caption>
-        <span v-if="hasReplies" @click="toggleExpanded" style="cursor: pointer" class="q-mr-xs">{{
-          expandedIcon
-        }}</span>
-        <span @click="toggleReplying" style="cursor: pointer">Reply</span> to <span style="cursor: pointer"
-          @click="$router.push(`/user/${comment.username}`)">{{
-            comment.username
-          }}</span> •
-        <span>{{ format(comment.created_at) }}</span>
+        <span id="comment-count" v-if="hasReplies" @click="toggleExpanded" style="cursor: pointer" class="q-mr-xs">
+          {{ expandedIcon }}
+          {{ comment.comments_count }}
+          <q-icon name="chat" />
+        </span>
+        <span id="reply-button" @click="toggleReplying" style="cursor: pointer">Reply</span> to
+        <span id="username" style="cursor: pointer" @click="$router.push(`/user/${comment.username}`)">{{
+          comment.username
+          }}</span>
+        •{{ format(comment.created_at) }}
       </q-item-label>
     </q-item-section>
   </q-item>
@@ -57,5 +59,17 @@ onMounted(async () => {
 <style scoped>
 q-item-section {
   border-left: 1px solid #ccc;
+}
+
+#comment-count:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+#reply-button:hover {
+  text-decoration: underline;
+}
+
+#username:hover {
+  text-decoration: underline;
 }
 </style>
