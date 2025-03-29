@@ -4,10 +4,8 @@ import { useStatementStore } from '../stores/statementStore';
 import { ref, onMounted, computed, watch } from 'vue';
 import { useSupabase } from '../composables/useSupabase';
 import type { Argument } from '../components/models';
-import CommentComponent from '../components/CommentComponent.vue';
 import ArgumentComponent from '../components/ArgumentComponent.vue';
-import { useCommentReplies } from '../composables/useComments';
-import ReplyBox from '../components/ReplyBox.vue';
+import CommentTab from '../components/CommentTab.vue'
 
 const route = useRoute();
 const statementId = route.params.id;
@@ -18,7 +16,6 @@ const activeTab = ref(route.query.tab?.toString() || 'comments');
 const opposingArguments = ref<Argument[]>([]);
 const supportingArguments = ref<Argument[]>([]);
 const router = useRouter();
-const { comments, fetchComments } = useCommentReplies();
 
 const loadStatement = async () => {
   if (!statementStore.currentStatement) {
@@ -35,7 +32,6 @@ const loadStatement = async () => {
 
 onMounted(async () => {
   void loadStatement();
-  comments.value = await fetchComments(parseInt(statementId as string), 'statement');
   supportingArguments.value = await supabase.fetchArguments_by_conclusion(parseInt(statementId as string), 'SUPPORTS');
   opposingArguments.value = await supabase.fetchArguments_by_conclusion(parseInt(statementId as string), 'OPPOSES');
 });
@@ -71,18 +67,7 @@ watch(activeTab, async (newTab) => {
       <q-tab-panels v-model="activeTab" animated>
 
         <q-tab-panel name="comments">
-          <q-item>
-            <q-item-section>
-              <ReplyBox :parent-id="statementStore.currentStatement?.id as number" :parent-type="'statement'"
-                @reply="(comment) => comments.unshift(comment)" />
-            </q-item-section>
-          </q-item>
-          <div v-if="statementStore.currentStatement?.comments_count === 0">
-            No Comments, yet!
-          </div>
-          <q-list dense v-else>
-            <CommentComponent v-for="comment in comments" :key="comment.id" :comment="comment" />
-          </q-list>
+          <CommentTab :parent_id="statementStore.currentStatement?.id as number" :parent_type="'statement'" />
         </q-tab-panel>
 
         <q-tab-panel name="supporting">
