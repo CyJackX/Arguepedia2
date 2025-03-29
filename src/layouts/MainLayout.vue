@@ -9,25 +9,9 @@ const searchTerm = ref('');
 const authStore = useAuthStore();
 const loadingUser = ref(false);
 
-const userProfilePath = computed(() => {
-  if (authStore.userProfile) {
-    return `/user/${authStore.userProfile.username}`
-  } else if (authStore.user) {
-    return `/user/${authStore.user.id}`
-  } else {
-    return '/user/profile'
-  }
-});
-
-const userProfileLabel = computed(() => {
-  if (authStore.userProfile) {
-    return authStore.userProfile.username
-  } else if (authStore.user) {
-    return authStore.user.id
-  } else {
-    return 'Profile'
-  }
-});
+const userProfileLabel = computed(() =>
+  authStore.userProfile?.username || 'Profile'
+);
 
 onMounted(async () => {
   if (authStore.user && !authStore.userProfile) {
@@ -75,7 +59,7 @@ const debouncedSearch = debounce(handleSearch, 500);
           <q-route-tab to="/about" label="About" />
           <q-route-tab v-if="loadingUser" label="Loading..." />
           <q-route-tab v-else-if="!authStore.user?.id" to="/auth" label="Login/Register" />
-          <q-route-tab v-else :to="userProfilePath" :label="loadingUser ? 'Loading...' : userProfileLabel" />
+          <q-route-tab v-else to="/user" :label="userProfileLabel" />
         </q-tabs>
       </q-toolbar>
 
