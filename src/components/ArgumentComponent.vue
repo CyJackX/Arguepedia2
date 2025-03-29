@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Argument, Statement } from './models';
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 import { useSupabase } from '../composables/useSupabase';
 
 const props = defineProps<{
@@ -13,26 +13,22 @@ const isLoading = ref(false);
 const { fetchStatement, fetchConnectedStatements } = useSupabase();
 const argumentStatements = ref<Statement[]>([]);
 
-// Add watch to fetch the statement when expanded
-watch(expanded, async (newValue) => {
-  if (newValue) {
-    isLoading.value = true;
-    try {
-      conclusion.value = await fetchStatement(props.argument.conclusion_id);
-      argumentStatements.value = await fetchConnectedStatements(props.argument.id);
-    } catch (error) {
-      console.error('Failed to fetch conclusion:', error);
-    } finally {
-      isLoading.value = false;
-    }
+const handleBeforeShow = async () => {
+  isLoading.value = true;
+  try {
+    conclusion.value = await fetchStatement(props.argument.conclusion_id);
+    argumentStatements.value = await fetchConnectedStatements(props.argument.id);
+  } catch (error) {
+    console.error('Failed to fetch conclusion:', error);
+  } finally {
+    isLoading.value = false;
   }
-});
-
+};
 </script>
 
 <template>
   <q-card bordered>
-    <q-expansion-item v-model="expanded">
+    <q-expansion-item expand-icon-toggle dense dense-toggle v-model="expanded" @before-show="handleBeforeShow">
       <template #header>
         <q-item-section>
           <div class="text-body1 text-weight-bold">{{ props.argument.title }}</div>

@@ -71,6 +71,7 @@ export function useCommentReplies() {
     console.log('Sending reply to', parentId, 'parent type:', parentType, 'reply:', reply.value);
     const newComment = await createComment(parentId, parentType, reply.value);
     if (newComment) {
+      console.log('New comment created');
       replying.value = false;
       reply.value = '';
       return newComment;

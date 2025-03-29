@@ -1,18 +1,16 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { useSupabase } from '../composables/useSupabase';
 import type { Statement } from '../components/models';
-import { useStatementStore } from '../stores/statementStore';
+import StatementComponent from './StatementComponent.vue'
 
 const route = useRoute();
-const router = useRouter();
 const supabase = useSupabase();
 const statements = ref<Statement[]>([]);
 const itemsPerPage = 10;
 const maxResults = 50; // Set total results to return from backend, pagination client-side.
 const currentPage = ref(1);
-const statementStore = useStatementStore();
 // Compute total pages based on actual results
 const totalPages = computed(() => Math.ceil(statements.value.length / itemsPerPage));
 
@@ -89,16 +87,6 @@ const searchStatements = async (query: string) => {
   currentPage.value = 1; // Reset to first page on new search
 };
 
-const navigateToStatement = async (statement: Statement) => {
-  if (!statement) return;
-  statementStore.setCurrentStatement(statement);
-  try {
-    await router.push(`/statement/${statement.id}`);
-  } catch (error) {
-    console.error('Navigation error:', error);
-  }
-};
-
 // Watch for route query changes only
 watch(
   () => route.query.q,
@@ -121,19 +109,10 @@ watch(
       <h6>Search Results</h6>
       <q-select dense v-model="sortMethod" :options="SORT_OPTIONS" label="Sort by" />
     </div>
-    <q-list bordered separator>
-      <q-item clickable v-for="statement in paginatedStatements" :key="statement.id"
-        @click="navigateToStatement(statement)">
-        <q-item-section>
-          <q-item-label style="font-weight: bold">{{ statement.statement_text }}</q-item-label>
-          <q-item-label caption>
-            <q-icon color="green" name="check" /> {{ statement.supporting_arguments_count }} | <q-icon color="red"
-              name="close" />
-            {{ statement.opposing_arguments_count }} | <q-icon name="comment" /> {{ statement.comments_count }}
-            <br>Created by {{ statement.username }} on {{ new Date(statement.created_at).toLocaleString() }}
-          </q-item-label>
-        </q-item-section>
-      </q-item>
+    <q-list separator>
+      <template v-for="statement in paginatedStatements" :key="statement.id">
+        <StatementComponent :statement="statement" />
+      </template>
     </q-list>
 
     <!-- Only show pagination if we have items -->

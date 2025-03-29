@@ -38,6 +38,7 @@ export interface Argument {
   downvotes: number;
   score: number;
   users_vote: boolean | null;
+  comments_count: number;
 }
 
 export type StatementType = 'SUPPORTS' | 'OPPOSES';

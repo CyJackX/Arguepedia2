@@ -15,7 +15,6 @@ const statementStore = useStatementStore();
 const supabase = useSupabase();
 const isLoading = ref(true);
 const activeTab = ref(route.query.tab?.toString() || 'comments');
-const currentStatement = computed(() => statementStore.currentStatement);
 const opposingArguments = ref<Argument[]>([]);
 const supportingArguments = ref<Argument[]>([]);
 const router = useRouter();
@@ -50,25 +49,27 @@ watch(activeTab, async (newTab) => {
   <div>
     <div v-if="isLoading">Loading...</div>
     <div v-else>
-      <q-card>
+      <q-card class="q-mb-md">
         <q-card-section>
-          {{ statementStore.currentStatement?.statement_text }}
-        </q-card-section>
-        <q-card-section>
-          Created by {{ statementStore.currentStatement?.username }} on
-          {{ new Date(statementStore.currentStatement?.created_at as string).toLocaleString() }}
+          <div class="text-h4">{{ statementStore.currentStatement?.statement_text }}</div>
+          <div class="text-subtitle2">
+            Created by {{ statementStore.currentStatement?.username }} on
+            {{ new Date(statementStore.currentStatement?.created_at as string).toLocaleDateString() }}
+          </div>
         </q-card-section>
       </q-card>
+
       <q-tabs v-model="activeTab" dense class="text-grey" active-color="primary" indicator-color="primary"
         align="justify">
-        <q-tab name="opposing" icon="close" label="Opposing" />
+        <q-tab name="opposing" icon="close" label="Opposing Arguments" />
         <q-tab name="comments" icon="comment" label="Comments" />
-        <q-tab name="supporting" icon="check" label="Supporting" />
+        <q-tab name="supporting" icon="check" label="Supporting Arguments" />
       </q-tabs>
 
       <q-separator />
 
       <q-tab-panels v-model="activeTab" animated>
+
         <q-tab-panel name="comments">
           <q-item>
             <q-item-section>
@@ -76,24 +77,30 @@ watch(activeTab, async (newTab) => {
                 @reply="(comment) => comments.unshift(comment)" />
             </q-item-section>
           </q-item>
-          <div v-if="currentStatement?.comments_count && currentStatement.comments_count === 0">
-            No Comments
+          <div v-if="statementStore.currentStatement?.comments_count === 0">
+            No Comments, yet!
           </div>
           <q-list dense v-else>
             <CommentComponent v-for="comment in comments" :key="comment.id" :comment="comment" />
           </q-list>
         </q-tab-panel>
-        <q-tab-panel name="arguments">
-          <div v-if="currentStatement?.supporting_arguments_count && currentStatement.supporting_arguments_count > 0">
-            <h3>Supporting Arguments</h3>
+
+        <q-tab-panel name="supporting">
+          <div
+            v-if="statementStore.currentStatement?.supporting_arguments_count && statementStore.currentStatement.supporting_arguments_count > 0">
+            <ArgumentComponent v-for="argument in supportingArguments" :key="argument.id" :argument="argument" />
           </div>
+          <div v-else>No Supporting Arguments! Make one?</div>
         </q-tab-panel>
+
         <q-tab-panel name="opposing">
-          <h3>Opposing Arguments</h3>
-          <div v-if="currentStatement?.opposing_arguments_count && currentStatement.opposing_arguments_count > 0">
+          <div
+            v-if="statementStore.currentStatement?.opposing_arguments_count && statementStore.currentStatement.opposing_arguments_count > 0">
             <ArgumentComponent v-for="argument in opposingArguments" :key="argument.id" :argument="argument" />
           </div>
+          <div v-else>No Opposing Arguments! Make one?</div>
         </q-tab-panel>
+
       </q-tab-panels>
     </div>
   </div>
