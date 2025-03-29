@@ -3,7 +3,7 @@ import { ref, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useSupabase } from '../composables/useSupabase';
 import type { Statement } from '../components/models';
-import StatementComponent from './StatementComponent.vue'
+import StatementComponent from '../components/StatementComponent.vue'
 
 const route = useRoute();
 const supabase = useSupabase();

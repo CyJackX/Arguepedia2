@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router';
 import { useStatementStore } from '../stores/statementStore';
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { useSupabase } from '../composables/useSupabase';
 import type { Argument } from '../components/models';
-import ArgumentComponent from '../components/ArgumentComponent.vue';
+import ArgumentTab from '../components/ArgumentTab.vue';
 import CommentTab from '../components/CommentTab.vue'
 
 const route = useRoute();
-const statementId = route.params.id;
+const statementId = computed(() => parseInt(route.params.id as string));
 const statementStore = useStatementStore();
 const supabase = useSupabase();
 const isLoading = ref(true);
@@ -20,8 +20,8 @@ const router = useRouter();
 const loadStatement = async () => {
   if (!statementStore.currentStatement) {
     try {
-      console.log('Fetching statement:', statementId);
-      await statementStore.fetchStatement(parseInt(statementId as string));
+      console.log('Fetching statement:', statementId.value);
+      await statementStore.fetchStatement(statementId.value);
     } catch (error) {
       console.error('Failed to fetch statement:', error);
     }
@@ -29,11 +29,10 @@ const loadStatement = async () => {
   isLoading.value = false;
 };
 
-
 onMounted(async () => {
   void loadStatement();
-  supportingArguments.value = await supabase.fetchArguments_by_conclusion(parseInt(statementId as string), 'SUPPORTS');
-  opposingArguments.value = await supabase.fetchArguments_by_conclusion(parseInt(statementId as string), 'OPPOSES');
+  supportingArguments.value = await supabase.fetchArguments_by_conclusion(statementId.value, 'SUPPORTS');
+  opposingArguments.value = await supabase.fetchArguments_by_conclusion(statementId.value, 'OPPOSES');
 });
 
 watch(activeTab, async (newTab) => {
@@ -47,7 +46,7 @@ watch(activeTab, async (newTab) => {
     <div v-else>
       <q-card class="q-mb-md">
         <q-card-section>
-          <div class="text-h4">{{ statementStore.currentStatement?.statement_text }}</div>
+          <div class="text-h5">{{ statementStore.currentStatement?.statement_text }}</div>
           <div class="text-subtitle2">
             Created by {{ statementStore.currentStatement?.username }} on
             {{ new Date(statementStore.currentStatement?.created_at as string).toLocaleDateString() }}
@@ -65,26 +64,18 @@ watch(activeTab, async (newTab) => {
       <q-separator />
 
       <q-tab-panels v-model="activeTab" animated>
+        <q-tab-panel name="opposing">
+          <ArgumentTab :statementId="statementId" type="OPPOSES" />
+        </q-tab-panel>
 
         <q-tab-panel name="comments">
           <CommentTab :parent_id="statementStore.currentStatement?.id as number" :parent_type="'statement'" />
         </q-tab-panel>
 
         <q-tab-panel name="supporting">
-          <div
-            v-if="statementStore.currentStatement?.supporting_arguments_count && statementStore.currentStatement.supporting_arguments_count > 0">
-            <ArgumentComponent v-for="argument in supportingArguments" :key="argument.id" :argument="argument" />
-          </div>
-          <div v-else>No Supporting Arguments! Make one?</div>
+          <ArgumentTab :statementId="statementId" type="SUPPORTS" />
         </q-tab-panel>
 
-        <q-tab-panel name="opposing">
-          <div
-            v-if="statementStore.currentStatement?.opposing_arguments_count && statementStore.currentStatement.opposing_arguments_count > 0">
-            <ArgumentComponent v-for="argument in opposingArguments" :key="argument.id" :argument="argument" />
-          </div>
-          <div v-else>No Opposing Arguments! Make one?</div>
-        </q-tab-panel>
 
       </q-tab-panels>
     </div>

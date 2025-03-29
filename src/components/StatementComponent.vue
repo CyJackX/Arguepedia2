@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Statement } from '../components/models';
+import type { Statement } from './models';
 import { useStatementStore } from '../stores/statementStore';
 import { useRouter } from 'vue-router';
 
