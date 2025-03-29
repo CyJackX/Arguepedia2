@@ -7,6 +7,7 @@ import StatementComponent from '../components/StatementComponent.vue'
 
 const route = useRoute();
 const supabase = useSupabase();
+const isLoading = ref(true);
 const statements = ref<Statement[]>([]);
 const itemsPerPage = 10;
 const maxResults = 50; // Set total results to return from backend, pagination client-side.
@@ -82,9 +83,11 @@ const paginatedStatements = computed(() => {
 const searchStatements = async (query: string) => {
   if (!query) return;
   // Load 100 results at once
+  isLoading.value = true;
   const results = await supabase.searchStatements(query, 0, maxResults);
   statements.value = results;
   currentPage.value = 1; // Reset to first page on new search
+  isLoading.value = false;
 };
 
 // Watch for route query changes only
@@ -106,18 +109,31 @@ watch(
 <template>
   <div class="q-pa-md">
     <div class="row justify-between items-center">
-      <h6>Search Results</h6>
-      <q-select dense v-model="sortMethod" :options="SORT_OPTIONS" label="Sort by" />
+      <h6 class="q-my-none">Search Results</h6>
+      <q-select dense outlined v-model="sortMethod" :options="SORT_OPTIONS" label="Sort by" class="q-ml-md" />
     </div>
-    <q-list separator>
+
+    <!-- Loading state -->
+    <div v-if="isLoading" class="flex justify-center q-my-xl">
+      <q-spinner-dots color="primary" size="42px" />
+    </div>
+
+    <!-- No results state -->
+    <div v-else-if="!statements.length" class="text-center q-my-xl text-grey-7">
+      No results found
+    </div>
+
+    <!-- Results list -->
+    <q-list dense v-else separator padding>
       <template v-for="statement in paginatedStatements" :key="statement.id">
-        <StatementComponent :statement="statement" />
+        <StatementComponent :statement="statement" show-stats />
       </template>
     </q-list>
 
-    <!-- Only show pagination if we have items -->
-    <div v-if="statements.length" class="flex justify-center q-mt-md">
-      <q-pagination v-model="currentPage" :max="totalPages" :max-pages="6" boundary-numbers direction-links />
+    <!-- Pagination -->
+    <div v-if="statements.length" class="flex justify-center q-mt-lg">
+      <q-pagination v-model="currentPage" :max="totalPages" :max-pages="6" boundary-numbers direction-links
+        color="primary" active-color="primary" />
     </div>
   </div>
 </template>

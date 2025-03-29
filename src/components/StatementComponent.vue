@@ -8,6 +8,7 @@ const router = useRouter();
 
 defineProps<{
   statement: Statement;
+  showStats?: boolean;
 }>()
 
 const navigateToStatement = async (statement: Statement) => {
@@ -25,7 +26,7 @@ const navigateToStatement = async (statement: Statement) => {
   <q-item clickable @click="navigateToStatement(statement)">
     <q-item-section>
       <q-item-label style="font-weight: bold">{{ statement.statement_text }}</q-item-label>
-      <q-item-label caption>
+      <q-item-label caption v-if="showStats">
         <q-icon color="green" name="check" /> {{ statement.supporting_arguments_count }} | <q-icon color="red"
           name="close" />
         {{ statement.opposing_arguments_count }} | <q-icon name="comment" /> {{ statement.comments_count }}
