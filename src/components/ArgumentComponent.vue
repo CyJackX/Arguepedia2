@@ -2,7 +2,7 @@
 import type { Argument, Statement } from './models';
 import { ref } from 'vue';
 import { useSupabase } from '../composables/useSupabase';
-
+import UsernameButton from './UsernameButton.vue';
 const props = defineProps<{
   argument: Argument;
 }>();
@@ -24,19 +24,36 @@ const handleBeforeShow = async () => {
     isLoading.value = false;
   }
 };
+
 </script>
 
 <template>
   <q-card bordered>
     <q-expansion-item expand-icon-toggle dense dense-toggle v-model="expanded" @before-show="handleBeforeShow">
       <template #header>
-        <q-item-section>
-          <div class="text-body1 text-weight-bold">{{ props.argument.title }}</div>
-          <div class="text-caption">by {{ props.argument.username }}</div>
+        <q-item-section side class="col-auto">
           <div class="text-caption">
-            <b>↑</b>{{ props.argument.upvotes - props.argument.downvotes }}<b>↓</b>
+            <div class="col">
+              <div class="col-auto">
+                ↑
+              </div>
+              <div class="col-auto">
+                {{ props.argument.upvotes - props.argument.downvotes }}
+              </div>
+              <div class="col-auto">
+                ↓
+              </div>
+            </div>
           </div>
         </q-item-section>
+        <q-item-section>
+          <div class="text-body1 text-weight-bold">{{ props.argument.title }}</div>
+          <div class="text-caption">by
+            <UsernameButton :username="props.argument.username" />
+          </div>
+
+        </q-item-section>
+
       </template>
       <q-list dense separator outlined>
         <q-item v-for="statement in argumentStatements" :key="statement.id">

@@ -4,6 +4,8 @@ import { computed, onMounted } from 'vue';
 import { useCommentReplies } from '../composables/useComments';
 import { format } from 'timeago.js';
 import ReplyBox from './ReplyBox.vue';
+import UsernameButton from './UsernameButton.vue';
+
 const props = defineProps<{
   comment: Comment;
 }>();
@@ -36,9 +38,7 @@ onMounted(async () => {
           <q-icon name="chat" />
         </span>
         <span id="reply-button" @click="toggleReplying" style="cursor: pointer">Reply</span> to
-        <span id="username" style="cursor: pointer" @click="$router.push(`/user/${comment.username}`)">{{
-          comment.username
-          }}</span>
+        <UsernameButton :username="comment.username" />
         •{{ format(comment.created_at) }}
       </q-item-label>
     </q-item-section>
@@ -66,10 +66,6 @@ q-item-section {
 }
 
 #reply-button:hover {
-  text-decoration: underline;
-}
-
-#username:hover {
   text-decoration: underline;
 }
 </style>

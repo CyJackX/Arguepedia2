@@ -2,7 +2,7 @@
 import type { Statement } from './models';
 import { useStatementStore } from '../stores/statementStore';
 import { useRouter } from 'vue-router';
-
+import UsernameButton from './UsernameButton.vue';
 const statementStore = useStatementStore();
 const router = useRouter();
 
@@ -30,7 +30,8 @@ const navigateToStatement = async (statement: Statement) => {
         <q-icon color="green" name="check" /> {{ statement.supporting_arguments_count }} | <q-icon color="red"
           name="close" />
         {{ statement.opposing_arguments_count }} | <q-icon name="comment" /> {{ statement.comments_count }}
-        <br>Created by {{ statement.username }} on {{ new Date(statement.created_at).toLocaleString() }}
+        <br>Created by
+        <UsernameButton :username="statement.username" /> on {{ new Date(statement.created_at).toLocaleString() }}
       </q-item-label>
     </q-item-section>
   </q-item>

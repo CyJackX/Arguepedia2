@@ -6,6 +6,7 @@ import { useSupabase } from '../composables/useSupabase';
 import type { Argument } from '../components/models';
 import ArgumentTab from '../components/ArgumentTab.vue';
 import CommentTab from '../components/CommentTab.vue'
+import UsernameButton from '../components/UsernameButton.vue'
 
 const route = useRoute();
 const statementId = computed(() => parseInt(route.params.id as string));
@@ -48,7 +49,8 @@ watch(activeTab, async (newTab) => {
         <q-card-section>
           <div class="text-h5">{{ statementStore.currentStatement?.statement_text }}</div>
           <div class="text-subtitle2">
-            Created by {{ statementStore.currentStatement?.username }} on
+            Created by
+            <UsernameButton :username="statementStore.currentStatement?.username as string" /> on
             {{ new Date(statementStore.currentStatement?.created_at as string).toLocaleDateString() }}
           </div>
         </q-card-section>
