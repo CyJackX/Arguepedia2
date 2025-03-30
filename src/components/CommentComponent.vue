@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Comment } from './models';
+import type { Comment } from '../types/models';
 import { computed, onMounted } from 'vue';
 import { useCommentReplies } from '../composables/useComments';
 import { format } from 'timeago.js';

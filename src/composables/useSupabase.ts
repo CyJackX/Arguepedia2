@@ -19,7 +19,7 @@ import type {
   Argument,
   Profile,
   Comment,
-} from '../components/models';
+} from '../types/models';
 import { useAuthStore } from '../stores/authStore';
 
 export function useSupabase() {

@@ -1,5 +1,5 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
-import type { Statement } from '../components/models';
+import type { Statement } from '../types/models';
 import { useSupabase } from 'src/composables/useSupabase';
 
 export const useStatementStore = defineStore('statement', {

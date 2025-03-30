@@ -1,5 +1,5 @@
 import { ref } from 'vue';
-import type { Comment, TopicType } from '../components/models';
+import type { Comment, TopicType } from '../types/models';
 import { useAuthStore } from '../stores/authStore';
 import { supabase } from '../utils/supabase';
 

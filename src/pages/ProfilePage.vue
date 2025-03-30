@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import type { Statement, Argument, Comment, Profile } from '../components/models';
+import type { Statement, Argument, Comment, Profile } from '../types/models';
 import StatementComponent from '../components/StatementComponent.vue';
 import ArgumentComponent from '../components/ArgumentComponent.vue';
 import CommentComponent from '../components/CommentComponent.vue';

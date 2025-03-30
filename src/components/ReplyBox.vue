@@ -8,7 +8,7 @@
 
 <script setup lang="ts">
 import { useCommentReplies } from '../composables/useComments';
-import type { TopicType, Comment } from '../components/models';
+import type { TopicType, Comment } from '../types/models';
 
 const props = defineProps<{
   parentId: number;

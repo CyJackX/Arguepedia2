@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Argument, Statement } from './models';
+import type { Argument, Statement } from '../types/models';
 import { ref } from 'vue';
 import { useSupabase } from '../composables/useSupabase';
 import UsernameButton from './UsernameButton.vue';

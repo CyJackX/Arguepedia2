@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { Argument } from './models';
+import type { Argument } from '../types/models';
 import ArgumentComponent from './ArgumentComponent.vue';
-import type { StatementType } from './models';
+import type { StatementType } from '../types/models';
 import { ref, onMounted } from 'vue';
 import { useSupabase } from '../composables/useSupabase';
 

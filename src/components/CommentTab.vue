@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
-import type { TopicType, Comment } from './models';
+import type { TopicType, Comment } from '../types/models';
 import { useCommentReplies } from '../composables/useComments';
 import ReplyBox from '../components/ReplyBox.vue';
 import CommentComponent from '../components/CommentComponent.vue';

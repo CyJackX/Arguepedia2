@@ -5,7 +5,7 @@ import ArgumentTab from '../components/ArgumentTab.vue';
 import CommentTab from '../components/CommentTab.vue'
 import UsernameButton from '../components/UsernameButton.vue'
 import { useSupabase } from '../composables/useSupabase';
-import type { Statement } from '../components/models';
+import type { Statement } from '../types/models';
 const route = useRoute();
 const statementId = computed(() => parseInt(route.params.id as string));
 const router = useRouter();

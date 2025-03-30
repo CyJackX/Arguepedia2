@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Statement } from './models';
+import type { Statement } from '../types/models';
 import { useRouter } from 'vue-router';
 import UsernameButton from './UsernameButton.vue';
 const router = useRouter();
