@@ -5,7 +5,7 @@ import type { Statement, Argument, Comment, Profile } from '../components/models
 import StatementComponent from '../components/StatementComponent.vue';
 import ArgumentComponent from '../components/ArgumentComponent.vue';
 import CommentComponent from '../components/CommentComponent.vue';
-import { supabase } from '../utils/supabase';
+import { useSupabase } from '../composables/useSupabase';
 
 const route = useRoute();
 const router = useRouter();
@@ -16,51 +16,24 @@ const argumentsList = ref<Argument[]>([]);
 const comments = ref<Comment[]>([]);
 const isLoading = ref(true);
 const tab = ref('statements');
+const supabase = useSupabase();
 
 onMounted(async () => {
   try {
     // First fetch the user profile to get the user_id
-    const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
-      .select('user_id, username')
-      .eq('username', username.value)
-      .single();
-
-    if (profileError || !profileData) {
-      console.error('User not found');
-      await router.push('/404');
-      return;
-    }
-
+    const profileData = await supabase.fetchUserProfile(username.value);
     userProfile.value = profileData;
 
-    // Fetch all user activity in parallel
-    const [statementsResponse, argumentsResponse, commentsResponse] = await Promise.all([
-      supabase
-        .from('statements')
-        .select('*')
-        .eq('user_id', profileData.user_id)
-        .order('created_at', { ascending: false }),
+    // Fetch all user activity
+    await supabase.fetchUserActivity(profileData.user_id);
 
-      supabase
-        .from('arguments')
-        .select('*')
-        .eq('user_id', profileData.user_id)
-        .order('created_at', { ascending: false }),
-
-      supabase
-        .from('comments')
-        .select('*')
-        .eq('user_id', profileData.user_id)
-        .order('created_at', { ascending: false })
-    ]);
-
-    statements.value = statementsResponse.data || [];
-    argumentsList.value = argumentsResponse.data || [];
-    comments.value = commentsResponse.data || [];
-
+    // Update local refs with the data from useSupabase
+    statements.value = supabase.userStatements.value;
+    argumentsList.value = supabase.userArguments.value;
+    comments.value = supabase.userComments.value;
   } catch (error) {
     console.error('Error fetching user activity:', error);
+    await router.push('/404');
   } finally {
     isLoading.value = false;
   }

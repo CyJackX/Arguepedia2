@@ -7,6 +7,7 @@
  * - Statement CRUD operations
  * - Search and similarity checking
  * - Cache management for statements
+ * - Profile and user activity queries
  */
 
 import { ref } from 'vue';
@@ -17,12 +18,16 @@ import type {
   StatementType,
   Argument,
   Profile,
+  Comment,
 } from '../components/models';
 import { useAuthStore } from '../stores/authStore';
 
 export function useSupabase() {
   const authStore = useAuthStore();
   const userProfile = ref<Profile | null>(null);
+  const userStatements = ref<Statement[]>([]);
+  const userArguments = ref<Argument[]>([]);
+  const userComments = ref<Comment[]>([]);
 
   /**
    * Searches for statements similar to the provided text using fuzzy matching
@@ -134,13 +139,16 @@ export function useSupabase() {
    */
   const fetchConnectedStatements = async (p_argument_id: number): Promise<RelatedStatement[]> => {
     console.log(`Fetching connected statements for argument ID ${p_argument_id}`);
-    const { data, error } = await supabase.rpc('get_statements_with_positions', {
-      p_argument_id: p_argument_id,
+
+    const { data, error } = await supabase.rpc('get_statements_by_argument', {
+      argument_id: p_argument_id,
     });
+
     if (error) {
-      console.error('Error fetching connected statements:', error);
-      return [];
+      console.error('Error fetching statements:', error);
     }
+
+    console.log('Related statements:', data);
     return data || [];
   };
 
@@ -171,6 +179,77 @@ export function useSupabase() {
     }
   };
 
+  /**
+   * Fetches a user's profile by username
+   */
+  const fetchUserProfile = async (username: string): Promise<Profile> => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('user_id, username')
+      .eq('username', username)
+      .single();
+
+    if (error) throw error;
+    return data;
+  };
+
+  /**
+   * Fetches all user activity (statements, arguments, comments) in parallel
+   */
+  const fetchUserActivity = async (userId: string) => {
+    console.log('Fetching activity for user:', userId);
+
+    const [statementsResponse, argumentsResponse, commentsResponse] = await Promise.all([
+      supabase
+        .from('statements')
+        .select('*, profiles(username)')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false }),
+
+      supabase
+        .from('arguments')
+        .select('*, profiles(username)')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false }),
+
+      supabase
+        .from('comments')
+        .select('*, profiles(username)')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false }),
+    ]);
+
+    if (statementsResponse.error) {
+      console.error('Error fetching statements:', statementsResponse.error);
+    }
+    if (argumentsResponse.error) {
+      console.error('Error fetching arguments:', argumentsResponse.error);
+    }
+    if (commentsResponse.error) {
+      console.error('Error fetching comments:', commentsResponse.error);
+    }
+
+    userStatements.value =
+      statementsResponse.data?.map((statement) => ({
+        ...statement,
+        username: statement.profiles.username,
+      })) || [];
+    userArguments.value =
+      argumentsResponse.data?.map((argument) => ({
+        ...argument,
+        username: argument.profiles.username,
+      })) || [];
+    userComments.value =
+      commentsResponse.data?.map((comment) => ({
+        ...comment,
+        username: comment.profiles.username,
+      })) || [];
+
+    console.log('Fetched statements:', userStatements.value.length);
+    console.log('Fetched arguments:', userArguments.value.length);
+    console.log('Fetched comments:', userComments.value.length);
+  };
+
   return {
     searchStatements,
     createNewStatement,
@@ -178,7 +257,12 @@ export function useSupabase() {
     fetchArguments_by_conclusion,
     fetchConnectedStatements,
     updateVote,
+    fetchUserProfile,
+    fetchUserActivity,
     auth: authStore,
     userProfile,
+    userStatements,
+    userArguments,
+    userComments,
   };
 }
