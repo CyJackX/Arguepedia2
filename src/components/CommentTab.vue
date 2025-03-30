@@ -4,16 +4,19 @@ import type { TopicType, Comment } from './models';
 import { useCommentReplies } from '../composables/useComments';
 import ReplyBox from '../components/ReplyBox.vue';
 import CommentComponent from '../components/CommentComponent.vue';
-
+import { ref } from 'vue';
 const props = defineProps<{
   parent_id: number;
   parent_type: TopicType;
 }>();
 
 const { comments, fetchComments } = useCommentReplies();
+const isLoading = ref(false);
 
 onMounted(async () => {
+  isLoading.value = true;
   comments.value = await fetchComments(props.parent_id, props.parent_type);
+  isLoading.value = false;
 });
 </script>
 
@@ -27,7 +30,14 @@ onMounted(async () => {
   <div v-if="comments.length === 0">
     No Comments, yet!
   </div>
-  <q-list dense v-else>
+  <q-list dense v-else-if="!isLoading">
     <CommentComponent v-for="comment in comments" :key="comment.id" :comment="comment" />
+  </q-list>
+  <q-list dense v-else>
+    <q-item>
+      <q-item-section>
+        <q-item-label>Loading...</q-item-label>
+      </q-item-section>
+    </q-item>
   </q-list>
 </template>
