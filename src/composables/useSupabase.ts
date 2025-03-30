@@ -137,19 +137,21 @@ export function useSupabase() {
   /**
    * Fetches statements connected to a given statement ID with a specific relationship type
    */
-  const fetchConnectedStatements = async (p_argument_id: number): Promise<RelatedStatement[]> => {
-    console.log(`Fetching connected statements for argument ID ${p_argument_id}`);
-
-    const { data, error } = await supabase.rpc('get_statements_by_argument', {
-      argument_id: p_argument_id,
-    });
+  const fetchConnectedStatements = async (argument_id: number): Promise<RelatedStatement[]> => {
+    const { data, error } = await supabase
+      .from('argument_statements')
+      .select('statements_with_profiles(*), statement_position')
+      .eq('argument_id', argument_id)
+      .order('statement_position', { ascending: true });
 
     if (error) {
       console.error('Error fetching statements:', error);
+      throw error;
     }
-
-    console.log('Related statements:', data);
-    return data || [];
+    const statements =
+      data?.map((item) => item.statements_with_profiles as unknown as RelatedStatement) || [];
+    console.log('Related statements:', statements);
+    return statements;
   };
 
   /**
