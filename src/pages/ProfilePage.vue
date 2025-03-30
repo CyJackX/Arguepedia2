@@ -42,7 +42,7 @@ onMounted(async () => {
 
 <template>
   <div class="q-pa-md">
-    <h1 class="q-my-none">{{ username }}'s Profile</h1>
+    <h5 class="q-my-none">{{ username }}'s Profile</h5>
 
     <q-tabs v-model="tab" class="text-primary">
       <q-tab name="statements" label="Statements" />
