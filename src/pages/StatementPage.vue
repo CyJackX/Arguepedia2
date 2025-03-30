@@ -2,8 +2,6 @@
 import { useRoute, useRouter } from 'vue-router';
 import { useStatementStore } from '../stores/statementStore';
 import { ref, onMounted, watch, computed } from 'vue';
-import { useSupabase } from '../composables/useSupabase';
-import type { Argument } from '../components/models';
 import ArgumentTab from '../components/ArgumentTab.vue';
 import CommentTab from '../components/CommentTab.vue'
 import UsernameButton from '../components/UsernameButton.vue'
@@ -11,11 +9,8 @@ import UsernameButton from '../components/UsernameButton.vue'
 const route = useRoute();
 const statementId = computed(() => parseInt(route.params.id as string));
 const statementStore = useStatementStore();
-const supabase = useSupabase();
 const isLoading = ref(true);
 const activeTab = ref(route.query.tab?.toString() || 'comments');
-const opposingArguments = ref<Argument[]>([]);
-const supportingArguments = ref<Argument[]>([]);
 const router = useRouter();
 
 const loadStatement = async () => {
@@ -32,8 +27,6 @@ const loadStatement = async () => {
 
 onMounted(async () => {
   void loadStatement();
-  supportingArguments.value = await supabase.fetchArguments_by_conclusion(statementId.value, 'SUPPORTS');
-  opposingArguments.value = await supabase.fetchArguments_by_conclusion(statementId.value, 'OPPOSES');
 });
 
 watch(activeTab, async (newTab) => {
