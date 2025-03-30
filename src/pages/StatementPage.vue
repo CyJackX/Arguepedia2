@@ -1,23 +1,24 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router';
-import { useStatementStore } from '../stores/statementStore';
 import { ref, onMounted, watch, computed } from 'vue';
 import ArgumentTab from '../components/ArgumentTab.vue';
 import CommentTab from '../components/CommentTab.vue'
 import UsernameButton from '../components/UsernameButton.vue'
-
+import { useSupabase } from '../composables/useSupabase';
+import type { Statement } from '../components/models';
 const route = useRoute();
 const statementId = computed(() => parseInt(route.params.id as string));
-const statementStore = useStatementStore();
+const router = useRouter();
+const currentStatement = ref<Statement | null>(null);
 const isLoading = ref(true);
 const activeTab = ref(route.query.tab?.toString() || 'comments');
-const router = useRouter();
 
 const loadStatement = async () => {
-  if (!statementStore.currentStatement) {
+  if (!currentStatement.value) {
     try {
       console.log('Fetching statement:', statementId.value);
-      await statementStore.fetchStatement(statementId.value);
+      const supabase = useSupabase();
+      currentStatement.value = await supabase.fetchStatement(statementId.value);
     } catch (error) {
       console.error('Failed to fetch statement:', error);
     }
@@ -40,11 +41,11 @@ watch(activeTab, async (newTab) => {
     <div v-else>
       <q-card class="q-mb-md">
         <q-card-section>
-          <div class="text-h5">{{ statementStore.currentStatement?.statement_text }}</div>
+          <div class="text-h5">{{ currentStatement?.statement_text }}</div>
           <div class="text-subtitle2">
             Created by
-            <UsernameButton :username="statementStore.currentStatement?.username as string" /> on
-            {{ new Date(statementStore.currentStatement?.created_at as string).toLocaleDateString() }}
+            <UsernameButton :username="currentStatement?.username as string" /> on
+            {{ new Date(currentStatement?.created_at as string).toLocaleDateString() }}
           </div>
         </q-card-section>
       </q-card>
@@ -64,7 +65,7 @@ watch(activeTab, async (newTab) => {
         </q-tab-panel>
 
         <q-tab-panel name="comments">
-          <CommentTab :parent_id="statementStore.currentStatement?.id as number" :parent_type="'statement'" />
+          <CommentTab :parent_id="currentStatement?.id as number" :parent_type="'statement'" />
         </q-tab-panel>
 
         <q-tab-panel name="supporting">
