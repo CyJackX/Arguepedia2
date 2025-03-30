@@ -27,7 +27,7 @@ const loadStatement = async () => {
 };
 
 onMounted(async () => {
-  void loadStatement();
+  await loadStatement();
 });
 
 watch(activeTab, async (newTab) => {
