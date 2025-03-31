@@ -126,7 +126,7 @@ watch(
     <!-- Results list -->
     <q-list dense v-else separator padding>
       <template v-for="statement in paginatedStatements" :key="statement.id">
-        <StatementComponent :statement="statement" show-stats />
+        <StatementComponent :statement="statement" bottomStats />
       </template>
     </q-list>
 

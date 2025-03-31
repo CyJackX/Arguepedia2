@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { Argument, Statement, RelatedStatement } from '../types/models';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useSupabase } from '../composables/useSupabase';
 import UsernameButton from './UsernameButton.vue';
+import StatementComponent from './StatementComponent.vue';
 
 const props = defineProps<{
   argument: Argument;
@@ -13,6 +14,9 @@ const expanded = ref(false);
 const isLoading = ref(false);
 const { fetchStatement, fetchConnectedStatements } = useSupabase();
 const argumentStatements = ref<RelatedStatement[]>([]);
+const conclusionLabel = computed(() => {
+  return props.argument.argument_type === 'SUPPORTS' ? 'supporting' : 'opposing';
+});
 
 const handleBeforeShow = async () => {
   isLoading.value = true;
@@ -57,14 +61,15 @@ const handleBeforeShow = async () => {
 
       </template>
       <q-list dense separator outlined>
-        <q-item v-for="statement in argumentStatements" :key="statement.id">
+        <StatementComponent v-for="statement in argumentStatements" :key="statement.id" :statement="statement" />
+        <q-item>
           <q-item-section>
-            <q-item-label>{{ statement.statement_text }}</q-item-label>
+            <q-item-label>Thereby {{ conclusionLabel }} the conclusion:</q-item-label>
           </q-item-section>
         </q-item>
         <q-item>
           <q-item-section>
-            <q-item-label>Therefore: {{ conclusion?.statement_text }}</q-item-label>
+            <q-item-label>{{ conclusion?.statement_text }}</q-item-label>
           </q-item-section>
         </q-item>
       </q-list>

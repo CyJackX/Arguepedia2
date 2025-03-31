@@ -55,7 +55,7 @@ onMounted(async () => {
         <div v-if="isLoading">Loading statements...</div>
         <q-list v-else-if="statements.length > 0" separator>
           <StatementComponent v-for="statement in statements" :key="statement.id" :statement="statement"
-            :show-stats="true" />
+            :bottomStats="true" />
         </q-list>
         <div v-else>No statements yet</div>
       </q-tab-panel>
