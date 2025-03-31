@@ -30,7 +30,7 @@ export interface SearchResult extends Statement {
 }
 
 export interface RelatedStatement extends Statement {
-  position: number;
+  statement_position: number;
 }
 
 export interface Argument extends BaseArgument {

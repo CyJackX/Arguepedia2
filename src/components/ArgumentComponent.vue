@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import type { Argument, Statement } from '../types/models';
+import type { Argument, Statement, RelatedStatement } from '../types/models';
 import { ref } from 'vue';
 import { useSupabase } from '../composables/useSupabase';
 import UsernameButton from './UsernameButton.vue';
+
 const props = defineProps<{
   argument: Argument;
 }>();
@@ -11,7 +12,7 @@ const conclusion = ref<Statement | null>(null);
 const expanded = ref(false);
 const isLoading = ref(false);
 const { fetchStatement, fetchConnectedStatements } = useSupabase();
-const argumentStatements = ref<Statement[]>([]);
+const argumentStatements = ref<RelatedStatement[]>([]);
 
 const handleBeforeShow = async () => {
   isLoading.value = true;

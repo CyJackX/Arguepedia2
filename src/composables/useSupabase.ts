@@ -141,30 +141,39 @@ export function useSupabase() {
    * Fetches statements connected to a given argument ID
    */
   const fetchConnectedStatements = async (argument_id: number): Promise<RelatedStatement[]> => {
-    const { data, error } = await supabase
-      .from('statements_with_profiles')
-      .select('*, argument_statements(statement_position)')
-      .eq('id', argument_id);
+    console.log('Fetching connected statements for argument ID:', argument_id);
+    try {
+      type JoinResult = {
+        statement_position: number;
+        statements: Database['public']['Tables']['statements']['Row'];
+      };
 
-    if (error) {
-      console.error('Error fetching statements:', error);
-      throw error;
+      const { data, error } = (await supabase
+        .from('argument_statements')
+        .select('statement_position, statements(*)')
+        .eq('argument_id', argument_id)) as {
+        data: JoinResult[] | null;
+        error: Error | null;
+      };
+
+      if (error) {
+        console.error('Error fetching statements:', error);
+        throw error;
+      }
+
+      if (!data) return [];
+
+      const connectedStatements = data.map((item) => ({
+        ...item.statements,
+        statement_position: item.statement_position,
+      })) as RelatedStatement[];
+
+      console.log('Successfully fetched connected statements:', connectedStatements);
+      return connectedStatements;
+    } catch (err) {
+      console.error('Error fetching connected statements:', err);
+      throw err;
     }
-
-    if (!data) return [];
-
-    return data.map((statement) => ({
-      ...statement,
-      id: statement.id,
-      statement_text: statement.statement_text,
-      user_id: statement.user_id,
-      created_at: statement.created_at,
-      username: statement.username,
-      comments_count: statement.comments_count,
-      supporting_arguments_count: statement.supporting_arguments_count,
-      opposing_arguments_count: statement.opposing_arguments_count,
-      position: statement.argument_statements.statement_position,
-    }));
   };
 
   /**
