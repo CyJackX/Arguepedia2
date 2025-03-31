@@ -14,12 +14,13 @@ import { ref } from 'vue';
 import { supabase } from '../utils/supabase';
 import type {
   Statement,
-  RelatedStatement,
   StatementType,
   Argument,
   Profile,
   Comment,
+  RelatedStatement,
 } from '../types/models';
+import type { Database } from '../types/supabase';
 import { useAuthStore } from '../stores/authStore';
 
 export function useSupabase() {
@@ -36,7 +37,7 @@ export function useSupabase() {
     search_term: string,
     offset_value: number,
     limit_value: number,
-  ): Promise<Statement[]> => {
+  ): Promise<Database['public']['Functions']['search_statements']['Returns']> => {
     console.log('Searching for statements:', search_term);
     const { data, error } = await supabase.rpc('search_statements', {
       search_term,
@@ -71,14 +72,17 @@ export function useSupabase() {
   };
 
   /**
-   * Fetches a statement from the database by ID or gets a random statement if no ID provided
+   * Fetches a statement from the database by ID
    */
-  const fetchStatement = async (statement_id: number): Promise<Statement | null> => {
+  const fetchStatement = async (statement_id: number): Promise<Statement> => {
     try {
-      const { data, error } = await supabase.rpc('get_statement', { statement_id });
-
+      const { data, error } = await supabase
+        .from('statements_with_profiles')
+        .select('*')
+        .eq('id', statement_id)
+        .single();
       if (error) throw error;
-      return data;
+      return data as Statement;
     } catch (err) {
       console.error('Statement fetch error:', err);
       throw err;
@@ -86,8 +90,7 @@ export function useSupabase() {
   };
 
   /**
-   * Fetches an argument from the database by ID using the get_argument stored procedure
-   * @param id The ID of the argument to fetch
+   * Fetches arguments for a conclusion from the database
    */
   const fetchArguments_by_conclusion = async (
     conclusion_id: number,
@@ -100,18 +103,8 @@ export function useSupabase() {
     );
     try {
       const { data, error } = await supabase
-        .from('arguments')
-        .select(
-          `
-          *,
-          profiles (
-            username
-          ),
-          argument_votes (
-            vote_value
-          )
-        `,
-        )
+        .from('get_argument_view')
+        .select('*')
         .eq('conclusion_id', conclusion_id)
         .eq('argument_type', argument_type)
         .range(offset, offset + limit - 1);
@@ -122,12 +115,22 @@ export function useSupabase() {
       }
 
       console.log(`Successfully fetched arguments:`, data);
-      const args = data.map((argument) => ({
+      return (data || []).map((argument) => ({
         ...argument,
-        username: argument.profiles.username,
-        vote_value: argument.argument_votes.vote_value,
+        // Ensure non-null values as required by Argument type
+        id: argument.id!,
+        created_at: argument.created_at!,
+        user_id: argument.user_id!,
+        title: argument.title!,
+        conclusion_id: argument.conclusion_id!,
+        argument_type: argument.argument_type!,
+        upvotes: argument.upvotes!,
+        downvotes: argument.downvotes!,
+        score: argument.score!,
+        username: argument.username!,
+        users_vote: argument.users_vote,
+        comments_count: 0, // This should be populated from the database if available
       }));
-      return args;
     } catch (err) {
       console.error('Arguments fetch error:', err);
       throw err;
@@ -135,23 +138,33 @@ export function useSupabase() {
   };
 
   /**
-   * Fetches statements connected to a given statement ID with a specific relationship type
+   * Fetches statements connected to a given argument ID
    */
   const fetchConnectedStatements = async (argument_id: number): Promise<RelatedStatement[]> => {
     const { data, error } = await supabase
-      .from('argument_statements')
-      .select('statements_with_profiles(*), statement_position')
-      .eq('argument_id', argument_id)
-      .order('statement_position', { ascending: true });
+      .from('statements_with_profiles')
+      .select('*, argument_statements(statement_position)')
+      .eq('id', argument_id);
 
     if (error) {
       console.error('Error fetching statements:', error);
       throw error;
     }
-    const statements =
-      data?.map((item) => item.statements_with_profiles as unknown as RelatedStatement) || [];
-    console.log('Related statements:', statements);
-    return statements;
+
+    if (!data) return [];
+
+    return data.map((statement) => ({
+      ...statement,
+      id: statement.id,
+      statement_text: statement.statement_text,
+      user_id: statement.user_id,
+      created_at: statement.created_at,
+      username: statement.username,
+      comments_count: statement.comments_count,
+      supporting_arguments_count: statement.supporting_arguments_count,
+      opposing_arguments_count: statement.opposing_arguments_count,
+      position: statement.argument_statements.statement_position,
+    }));
   };
 
   /**
@@ -187,12 +200,12 @@ export function useSupabase() {
   const fetchUserProfile = async (username: string): Promise<Profile> => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('user_id, username')
+      .select('*')
       .eq('username', username)
       .single();
 
     if (error) throw error;
-    return data;
+    return data as Profile;
   };
 
   /**

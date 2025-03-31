@@ -12,7 +12,8 @@
     "test": "echo \"No test specified\" && exit 0",
     "dev": "quasar dev",
     "build": "quasar build",
-    "postinstall": "quasar prepare"
+    "postinstall": "quasar prepare",
+    "types:supabase": "npx supabase gen types typescript --project-id giuhdvcbdegunhgjvdul > src/types/supabase.ts"
   },
   "dependencies": {
     "@quasar/extras": "^1.16.4",

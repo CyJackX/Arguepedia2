@@ -1,3 +1,5 @@
+import type { Database } from './supabase';
+
 export interface Todo {
   id: number;
   content: string;
@@ -7,6 +9,11 @@ export interface Meta {
   totalCount: number;
 }
 
+// Base types from database
+type BaseArgument = Database['public']['Tables']['arguments']['Row'];
+type BaseProfile = Database['public']['Tables']['profiles']['Row'];
+
+// Extended types with frontend-specific fields
 export interface Statement {
   id: number;
   statement_text: string;
@@ -26,23 +33,15 @@ export interface RelatedStatement extends Statement {
   position: number;
 }
 
-export interface Argument {
-  id: number;
-  created_at: string; // timestamp will be handled as string in TypeScript
-  user_id: string; // uuid is handled as string
-  title: string;
-  conclusion_id: number;
-  argument_type: StatementType;
+export interface Argument extends BaseArgument {
   username: string;
-  upvotes: number;
-  downvotes: number;
-  score: number;
   users_vote: boolean | null;
   comments_count: number;
 }
 
-export type StatementType = 'SUPPORTS' | 'OPPOSES';
-export type TopicType = 'statement' | 'argument' | 'comment';
+// Keep these as they're frontend-specific
+export type StatementType = Database['public']['Enums']['statementtypes'];
+export type TopicType = Database['public']['Enums']['parent_type'];
 
 export interface Comment {
   id: number;
@@ -54,7 +53,6 @@ export interface Comment {
   comments_count: number;
 }
 
-export interface Profile {
-  user_id: string;
+export interface Profile extends BaseProfile {
   username: string;
 }
