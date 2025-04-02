@@ -25,6 +25,7 @@ const argumentStatementById = (id: number) => {
 };
 
 const handleBeforeShow = async () => {
+  if (argumentStatements.value.length && conclusion.value) return;
   isLoading.value = true;
   try {
     [conclusion.value, argumentStatements.value] = await Promise.all([
@@ -70,27 +71,29 @@ const handleBeforeShow = async () => {
         </q-item-section>
 
       </template>
-      <q-list v-if="!isLoading" dense separator outlined>
-        <template v-for="statementId in argument.statement_array" :key="statementId">
-          <StatementComponent v-if="argumentStatementById(statementId)" sideStats
-            :statement="argumentStatementById(statementId) as Statement" />
-          <q-item v-else :inset-level=.67>
+      <template #default>
+        <q-list v-if="!isLoading" dense separator outlined>
+          <template v-for="statementId in argument.statement_array" :key="statementId">
+            <StatementComponent v-if="argumentStatementById(statementId)" sideStats
+              :statement="argumentStatementById(statementId) as Statement" />
+            <q-item v-else :inset-level=.67>
+              <q-item-section>
+                <q-item-label class="text-weight-bold">Statement ID: {{ statementId }} not found!</q-item-label>
+              </q-item-section>
+            </q-item>
+          </template>
+          <q-item :inset-level=.67>
             <q-item-section>
-              <q-item-label class="text-weight-bold">Statement ID: {{ statementId }} not found!</q-item-label>
+              <q-item-label>Thereby {{ conclusionLabel }} the conclusion:</q-item-label>
             </q-item-section>
           </q-item>
-        </template>
-        <q-item :inset-level=.67>
-          <q-item-section>
-            <q-item-label>Thereby {{ conclusionLabel }} the conclusion:</q-item-label>
-          </q-item-section>
-        </q-item>
-        <q-item :inset-level=.67>
-          <q-item-section>
-            <q-item-label>{{ conclusion?.statement_text }}</q-item-label>
-          </q-item-section>
-        </q-item>
-      </q-list>
+          <q-item :inset-level=.67>
+            <q-item-section>
+              <q-item-label>{{ conclusion?.statement_text }}</q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </template>
     </q-expansion-item>
   </q-card>
 </template>
