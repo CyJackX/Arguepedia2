@@ -49,10 +49,13 @@ export function useCommentReplies() {
           parent_type,
           content,
         })
-        .select()
+        .select('*, profiles (username)')
         .single();
       if (error) throw error;
-      return data;
+      return {
+        ...data,
+        username: data.profiles.username,
+      };
     } catch (error) {
       console.error('Error creating comment:', error);
       return null;

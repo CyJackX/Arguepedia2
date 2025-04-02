@@ -22,6 +22,10 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/StatementPage.vue'),
       },
       {
+        path: 'argument/:id',
+        component: () => import('pages/ArgumentPage.vue'),
+      },
+      {
         path: 'auth',
         component: () => import('pages/AuthPage.vue'),
       },

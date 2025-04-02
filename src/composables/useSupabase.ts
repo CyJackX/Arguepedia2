@@ -89,6 +89,22 @@ export function useSupabase() {
     }
   };
 
+  const fetchArgumentbyId = async (argument_id: number): Promise<Argument> => {
+    try {
+      console.log('Fetching argument by ID:', argument_id);
+      const { data, error } = await supabase
+        .from('argument_view')
+        .select('*')
+        .eq('id', argument_id)
+        .single();
+      if (error) throw error;
+      console.log('Fetched argument:', data);
+      return data as Argument;
+    } catch (err) {
+      console.error('Argument fetch error:', err);
+      throw err;
+    }
+  };
   /**
    * Fetches arguments for a conclusion from the database
    */
@@ -103,7 +119,7 @@ export function useSupabase() {
     );
     try {
       const { data, error } = await supabase
-        .from('get_argument_view')
+        .from('argument_view')
         .select('*')
         .eq('conclusion_id', conclusion_id)
         .eq('argument_type', argument_type)
@@ -115,22 +131,7 @@ export function useSupabase() {
       }
 
       console.log(`Successfully fetched arguments:`, data);
-      return (data || []).map((argument) => ({
-        ...argument,
-        // Ensure non-null values as required by Argument type
-        id: argument.id!,
-        created_at: argument.created_at!,
-        user_id: argument.user_id!,
-        title: argument.title!,
-        conclusion_id: argument.conclusion_id!,
-        argument_type: argument.argument_type!,
-        upvotes: argument.upvotes!,
-        downvotes: argument.downvotes!,
-        score: argument.score!,
-        username: argument.username!,
-        users_vote: argument.users_vote,
-        comments_count: 0, // This should be populated from the database if available
-      }));
+      return data as Argument[];
     } catch (err) {
       console.error('Arguments fetch error:', err);
       throw err;
@@ -278,6 +279,7 @@ export function useSupabase() {
     searchStatements,
     createNewStatement,
     fetchStatement,
+    fetchArgumentbyId,
     fetchArguments_by_conclusion,
     fetchConnectedStatements,
     updateVote,

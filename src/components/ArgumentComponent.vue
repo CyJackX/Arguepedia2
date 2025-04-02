@@ -4,6 +4,9 @@ import { ref, computed } from 'vue';
 import { useSupabase } from '../composables/useSupabase';
 import UsernameButton from './UsernameButton.vue';
 import StatementComponent from './StatementComponent.vue';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 
 const props = defineProps<{
   argument: Argument;
@@ -52,7 +55,8 @@ const handleBeforeShow = async () => {
           </div>
         </q-item-section>
         <q-item-section>
-          <div class="text-body1 text-weight-bold">{{ props.argument.title }}</div>
+          <div @click="() => router.push(`/argument/${props.argument.id}`)" class="text-body1 text-weight-bold">{{
+            props.argument.title }}</div>
           <div class="text-caption">by
             <UsernameButton :username="props.argument.username" />
           </div>

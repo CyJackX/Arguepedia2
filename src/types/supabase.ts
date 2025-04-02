@@ -27,14 +27,14 @@ export type Database = {
             foreignKeyName: 'argument_statements_argument_id_fkey';
             columns: ['argument_id'];
             isOneToOne: false;
-            referencedRelation: 'arguments';
+            referencedRelation: 'argument_view';
             referencedColumns: ['id'];
           },
           {
             foreignKeyName: 'argument_statements_argument_id_fkey';
             columns: ['argument_id'];
             isOneToOne: false;
-            referencedRelation: 'get_argument_view';
+            referencedRelation: 'arguments';
             referencedColumns: ['id'];
           },
           {
@@ -80,14 +80,14 @@ export type Database = {
             foreignKeyName: 'argument_votes_argument_id_fkey';
             columns: ['argument_id'];
             isOneToOne: false;
-            referencedRelation: 'arguments';
+            referencedRelation: 'argument_view';
             referencedColumns: ['id'];
           },
           {
             foreignKeyName: 'argument_votes_argument_id_fkey';
             columns: ['argument_id'];
             isOneToOne: false;
-            referencedRelation: 'get_argument_view';
+            referencedRelation: 'arguments';
             referencedColumns: ['id'];
           },
           {
@@ -108,18 +108,20 @@ export type Database = {
           downvotes: number;
           id: number;
           score: number;
+          statement_array: number[];
           title: string;
           upvotes: number;
           user_id: string;
         };
         Insert: {
           argument_type?: Database['public']['Enums']['statementtypes'];
-          comments_count: number;
+          comments_count?: number;
           conclusion_id: number;
           created_at?: string;
           downvotes?: number;
           id?: number;
           score?: number;
+          statement_array?: number[];
           title: string;
           upvotes?: number;
           user_id?: string;
@@ -132,6 +134,7 @@ export type Database = {
           downvotes?: number;
           id?: number;
           score?: number;
+          statement_array?: number[];
           title?: string;
           upvotes?: number;
           user_id?: string;
@@ -333,19 +336,21 @@ export type Database = {
       };
     };
     Views: {
-      get_argument_view: {
+      argument_view: {
         Row: {
           argument_type: Database['public']['Enums']['statementtypes'] | null;
+          comments_count: number | null;
           conclusion_id: number | null;
           created_at: string | null;
           downvotes: number | null;
+          has_voted: boolean | null;
           id: number | null;
           score: number | null;
+          statement_array: number[] | null;
           title: string | null;
           upvotes: number | null;
           user_id: string | null;
           username: string | null;
-          users_vote: boolean | null;
         };
         Relationships: [
           {
@@ -361,6 +366,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: 'statements_with_profiles';
             referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'arguments_user_id_fkey1';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['user_id'];
           },
         ];
       };
@@ -569,7 +581,7 @@ export type Database = {
         };
         Returns: string;
       };
-      toggle_argument_vote: {
+      toggle_argument_vote_DEPRECATED: {
         Args: {
           p_argument_id: number;
           p_vote_value: boolean;

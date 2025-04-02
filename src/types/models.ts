@@ -35,8 +35,7 @@ export interface RelatedStatement extends Statement {
 
 export interface Argument extends BaseArgument {
   username: string;
-  users_vote: boolean | null;
-  comments_count: number;
+  has_voted: boolean | null;
 }
 
 // Keep these as they're frontend-specific
