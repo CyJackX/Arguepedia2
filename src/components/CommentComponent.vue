@@ -16,14 +16,19 @@ const {
   expanded,
   fetchComments,
   toggleExpanded,
-  toggleReplying
+  toggleReplying,
+  loadMoreComments,
+  direct_comments_count,
+  countDirectReplies,
 } = useCommentReplies();
 
 const hasReplies = computed(() => comments.value.length > 0);
 const expandedIcon = computed(() => (expanded.value ? '⊖' : '⊕'));
 
 onMounted(async () => {
+  if (comments.value.length > 0) return;
   comments.value = await fetchComments(props.comment.id, 'comment');
+  direct_comments_count.value = await countDirectReplies(props.comment.id, 'comment');
 });
 </script>
 
@@ -53,6 +58,8 @@ onMounted(async () => {
   </q-item>
   <q-list dense class="q-pl-md" v-if="expanded">
     <CommentComponent v-for="reply in comments" :key="reply.id" :comment="reply" />
+    <q-btn :size="'sm'" class="q-pl-md" no-caps flat dense v-if="comments.length < direct_comments_count"
+      label="Load More" @click="loadMoreComments(comment.id, 'comment')" />
   </q-list>
 </template>
 

@@ -5,19 +5,25 @@ import { useCommentReplies } from '../composables/useComments';
 import ReplyBox from '../components/ReplyBox.vue';
 import CommentComponent from '../components/CommentComponent.vue';
 import { ref } from 'vue';
+
 const props = defineProps<{
   parent_id: number;
   parent_type: TopicType;
 }>();
 
-const { comments, fetchComments } = useCommentReplies();
+const { comments, fetchComments, countDirectReplies, loadMoreComments, direct_comments_count } = useCommentReplies();
 const isLoading = ref(false);
 
+
 onMounted(async () => {
+  if (comments.value.length > 0) return;
   isLoading.value = true;
   comments.value = await fetchComments(props.parent_id, props.parent_type);
+  direct_comments_count.value = await countDirectReplies(props.parent_id, props.parent_type);
   isLoading.value = false;
 });
+
+
 </script>
 
 <template>
@@ -32,6 +38,8 @@ onMounted(async () => {
   </div>
   <q-list dense v-else-if="!isLoading">
     <CommentComponent v-for="comment in comments" :key="comment.id" :comment="comment" />
+    <q-btn :size="'sm'" class="q-pl-md" no-caps flat dense v-if="comments.length < direct_comments_count"
+      label="Load More" @click="loadMoreComments(parent_id, parent_type)" />
   </q-list>
   <q-list dense v-else>
     <q-item>

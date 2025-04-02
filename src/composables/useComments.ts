@@ -9,8 +9,14 @@ export function useCommentReplies() {
   const replying = ref(false);
   const reply = ref('');
   const expanded = ref(false);
+  const direct_comments_count = ref(0);
 
-  const fetchComments = async (parent_id: number, parent_type: TopicType): Promise<Comment[]> => {
+  const fetchComments = async (
+    parent_id: number,
+    parent_type: TopicType,
+    offset: number = 0,
+    limit: number = 20,
+  ): Promise<Comment[]> => {
     try {
       console.log('Fetching comments for parent ID:', parent_id, 'parent type:', parent_type);
       const { data, error } = await supabase
@@ -18,7 +24,8 @@ export function useCommentReplies() {
         .select('*, profiles (username)')
         .eq('parent_id', parent_id)
         .eq('parent_type', parent_type)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
 
       if (error) {
         console.error('Error fetching comments:', error);
@@ -84,6 +91,26 @@ export function useCommentReplies() {
     }
   };
 
+  const countDirectReplies = async (parent_id: number, parent_type: TopicType): Promise<number> => {
+    try {
+      const { data, error } = await supabase
+        .from('comments')
+        .select('count')
+        .eq('parent_id', parent_id)
+        .eq('parent_type', parent_type);
+      if (error) throw error;
+      return data[0].count;
+    } catch (error) {
+      console.error('Error counting direct replies:', error);
+      return 0;
+    }
+  };
+
+  const loadMoreComments = async (parent_id: number, parent_type: TopicType) => {
+    const newComments = await fetchComments(parent_id, parent_type, comments.value.length);
+    comments.value.push(...newComments);
+  };
+
   return {
     comments,
     replying,
@@ -93,5 +120,8 @@ export function useCommentReplies() {
     toggleReplying,
     toggleExpanded,
     sendReply,
+    countDirectReplies,
+    loadMoreComments,
+    direct_comments_count,
   };
 }
