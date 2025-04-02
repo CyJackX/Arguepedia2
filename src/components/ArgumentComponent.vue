@@ -70,7 +70,7 @@ const handleBeforeShow = async () => {
         </q-item-section>
 
       </template>
-      <q-list dense separator outlined>
+      <q-list v-if="!isLoading" dense separator outlined>
         <template v-for="statementId in argument.statement_array" :key="statementId">
           <StatementComponent v-if="argumentStatementById(statementId)" sideStats
             :statement="argumentStatementById(statementId) as Statement" />
