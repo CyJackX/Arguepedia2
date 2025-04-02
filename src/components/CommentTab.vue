@@ -38,8 +38,9 @@ onMounted(async () => {
   </div>
   <q-list dense v-else-if="!isLoading">
     <CommentComponent v-for="comment in comments" :key="comment.id" :comment="comment" />
-    <q-btn :size="'sm'" class="q-pl-md" no-caps flat dense v-if="comments.length < direct_comments_count"
-      label="Load More" @click="loadMoreComments(parent_id, parent_type)" />
+    <q-btn class="q-ml-lg text-caption" style="font-style: italic" no-caps flat dense
+      v-if="comments.length < direct_comments_count" label="...Load More"
+      @click="loadMoreComments(parent_id, parent_type)" />
   </q-list>
   <q-list dense v-else>
     <q-item>

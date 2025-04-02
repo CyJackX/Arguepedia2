@@ -56,10 +56,11 @@ onMounted(async () => {
       }" />
     </q-item-section>
   </q-item>
-  <q-list dense class="q-pl-md" v-if="expanded">
+  <q-list id="comment-list" dense class="q-pl-md" :class="{ expanded: expanded }">
     <CommentComponent v-for="reply in comments" :key="reply.id" :comment="reply" />
-    <q-btn :size="'sm'" class="q-pl-md" no-caps flat dense v-if="comments.length < direct_comments_count"
-      label="Load More" @click="loadMoreComments(comment.id, 'comment')" />
+    <q-btn class="q-ml-lg text-caption" style="font-style: italic" no-caps flat dense
+      v-if="comments.length < direct_comments_count" label="...Load More"
+      @click="loadMoreComments(comment.id, 'comment')" />
   </q-list>
 </template>
 
@@ -74,5 +75,13 @@ q-item-section {
 
 #reply-button:hover {
   text-decoration: underline;
+}
+
+#comment-list {
+  display: none;
+}
+
+#comment-list.expanded {
+  display: block;
 }
 </style>

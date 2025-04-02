@@ -15,7 +15,7 @@ export function useCommentReplies() {
     parent_id: number,
     parent_type: TopicType,
     offset: number = 0,
-    limit: number = 20,
+    limit: number = 10,
   ): Promise<Comment[]> => {
     try {
       console.log('Fetching comments for parent ID:', parent_id, 'parent type:', parent_type);
@@ -99,7 +99,7 @@ export function useCommentReplies() {
         .eq('parent_id', parent_id)
         .eq('parent_type', parent_type);
       if (error) throw error;
-      return data[0].count;
+      return data[0]?.count || 0;
     } catch (error) {
       console.error('Error counting direct replies:', error);
       return 0;
