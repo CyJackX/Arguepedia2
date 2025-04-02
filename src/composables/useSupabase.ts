@@ -12,14 +12,7 @@
 
 import { ref } from 'vue';
 import { supabase } from '../utils/supabase';
-import type {
-  Statement,
-  StatementType,
-  Argument,
-  Profile,
-  Comment,
-  RelatedStatement,
-} from '../types/models';
+import type { Statement, StatementType, Argument, Profile, Comment } from '../types/models';
 import type { Database } from '../types/supabase';
 import { useAuthStore } from '../stores/authStore';
 
@@ -141,36 +134,20 @@ export function useSupabase() {
   /**
    * Fetches statements connected to a given argument ID
    */
-  const fetchConnectedStatements = async (argument_id: number): Promise<RelatedStatement[]> => {
-    console.log('Fetching connected statements for argument ID:', argument_id);
+  const fetchConnectedStatements = async (statement_array: number[]): Promise<Statement[]> => {
+    console.log('Fetching connected statements for argument ID:', statement_array);
     try {
-      type JoinResult = {
-        statement_position: number;
-        statements: Database['public']['Tables']['statements']['Row'];
-      };
-
-      const { data, error } = (await supabase
-        .from('argument_statements')
-        .select('statement_position, statements(*)')
-        .eq('argument_id', argument_id)) as {
-        data: JoinResult[] | null;
-        error: Error | null;
-      };
+      const { data, error } = await supabase
+        .from('statements_with_profiles')
+        .select('*')
+        .in('id', statement_array);
 
       if (error) {
-        console.error('Error fetching statements:', error);
+        console.error('Error fetching connected statements:', error);
         throw error;
       }
-
-      if (!data) return [];
-
-      const connectedStatements = data.map((item) => ({
-        ...item.statements,
-        statement_position: item.statement_position,
-      })) as RelatedStatement[];
-
-      console.log('Successfully fetched connected statements:', connectedStatements);
-      return connectedStatements;
+      console.log('Successfully fetched connected statements:', data);
+      return data as Statement[];
     } catch (err) {
       console.error('Error fetching connected statements:', err);
       throw err;

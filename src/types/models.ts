@@ -29,9 +29,9 @@ export interface SearchResult extends Statement {
   similarity: number;
 }
 
-export interface RelatedStatement extends Statement {
-  statement_position: number;
-}
+// export interface RelatedStatement extends Statement {
+//   statement_position: number;
+// }
 
 export interface Argument extends BaseArgument {
   username: string;

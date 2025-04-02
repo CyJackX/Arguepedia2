@@ -9,12 +9,13 @@ defineProps<{
   bottomStats?: boolean;
   sideStats?: boolean;
   bold?: boolean;
+  insetLevel?: number;
 }>()
 
 </script>
 
 <template>
-  <q-item clickable @click="() => router.push(`/statement/${statement.id}`)">
+  <q-item clickable @click="() => router.push(`/statement/${statement.id}`)" :inset-level="insetLevel">
     <q-item-section side class="text-caption" v-if="sideStats">
       <q-item-label>
         <q-icon color="green" name="check" /> {{ statement.supporting_arguments_count }}

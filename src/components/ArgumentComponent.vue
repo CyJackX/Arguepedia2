@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Argument, Statement, RelatedStatement } from '../types/models';
+import type { Argument, Statement } from '../types/models';
 import { ref, computed } from 'vue';
 import { useSupabase } from '../composables/useSupabase';
 import UsernameButton from './UsernameButton.vue';
@@ -16,16 +16,21 @@ const conclusion = ref<Statement | null>(null);
 const expanded = ref(false);
 const isLoading = ref(false);
 const { fetchStatement, fetchConnectedStatements } = useSupabase();
-const argumentStatements = ref<RelatedStatement[]>([]);
+const argumentStatements = ref<Statement[]>([]);
 const conclusionLabel = computed(() => {
   return props.argument.argument_type === 'SUPPORTS' ? 'supporting' : 'opposing';
 });
+const argumentStatementById = (id: number) => {
+  return argumentStatements.value.find(s => s.id === id);
+};
 
 const handleBeforeShow = async () => {
   isLoading.value = true;
   try {
-    conclusion.value = await fetchStatement(props.argument.conclusion_id);
-    argumentStatements.value = await fetchConnectedStatements(props.argument.id);
+    [conclusion.value, argumentStatements.value] = await Promise.all([
+      fetchStatement(props.argument.conclusion_id),
+      fetchConnectedStatements(props.argument.statement_array)
+    ]);
   } catch (error) {
     console.error('Failed to fetch conclusion:', error);
   } finally {
@@ -37,7 +42,8 @@ const handleBeforeShow = async () => {
 
 <template>
   <q-card bordered>
-    <q-expansion-item expand-icon-toggle dense dense-toggle v-model="expanded" @before-show="handleBeforeShow">
+    <q-expansion-item expand-separator expand-icon-toggle dense dense-toggle v-model="expanded"
+      @before-show="handleBeforeShow">
       <template #header>
         <q-item-section side class="col-auto">
           <div class="text-caption">
@@ -65,13 +71,21 @@ const handleBeforeShow = async () => {
 
       </template>
       <q-list dense separator outlined>
-        <StatementComponent v-for="statement in argumentStatements" :key="statement.id" :statement="statement" />
-        <q-item>
+        <template v-for="statementId in argument.statement_array" :key="statementId">
+          <StatementComponent v-if="argumentStatementById(statementId)" sideStats
+            :statement="argumentStatementById(statementId) as Statement" />
+          <q-item v-else :inset-level=.67>
+            <q-item-section>
+              <q-item-label class="text-weight-bold">Statement ID: {{ statementId }} not found!</q-item-label>
+            </q-item-section>
+          </q-item>
+        </template>
+        <q-item :inset-level=.67>
           <q-item-section>
             <q-item-label>Thereby {{ conclusionLabel }} the conclusion:</q-item-label>
           </q-item-section>
         </q-item>
-        <q-item>
+        <q-item :inset-level=.67>
           <q-item-section>
             <q-item-label>{{ conclusion?.statement_text }}</q-item-label>
           </q-item-section>
