@@ -14,19 +14,21 @@ const isLoading = ref(true);
 const activeTab = ref(route.query.tab?.toString() || 'comments');
 
 const loadStatement = async () => {
-  if (!currentStatement.value) {
-    try {
-      console.log('Fetching statement:', statementId.value);
-      const supabase = useSupabase();
-      currentStatement.value = await supabase.fetchStatement(statementId.value);
-    } catch (error) {
-      console.error('Failed to fetch statement:', error);
-    }
+  try {
+    console.log('Fetching statement:', statementId.value);
+    const supabase = useSupabase();
+    currentStatement.value = await supabase.fetchStatement(statementId.value);
+  } catch (error) {
+    console.error('Failed to fetch statement:', error);
   }
   isLoading.value = false;
 };
 
 onMounted(async () => {
+  await loadStatement();
+});
+
+watch(statementId, async () => {
   await loadStatement();
 });
 
