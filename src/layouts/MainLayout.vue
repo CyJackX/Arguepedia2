@@ -65,9 +65,9 @@ const debouncedSearch = debounce(handleSearch, 500);
 
       <q-toolbar>
         <q-space />
-        <q-input style="max-width: 600px; width: 80%" v-model="searchTerm" type="search" placeholder="Search"
-          class="q-px-md q-ma-md" @update:model-value="debouncedSearch" @keyup.enter="handleSearch" dense outlined
-          bg-color="white">
+        <q-input style="max-width: 600px; width: 80%" v-model="searchTerm" type="search"
+          placeholder="Search statements or create your own..." class="q-px-md q-ma-md"
+          @update:model-value="debouncedSearch" @keyup.enter="handleSearch" dense outlined bg-color="white">
         </q-input>
         <q-space />
       </q-toolbar>
