@@ -71,17 +71,21 @@ const handleBeforeShow = async () => {
         </q-item-section>
 
       </template>
+
       <template #default>
-        <q-list v-if="!isLoading" dense separator outlined>
+        <q-list v-if="!isLoading" dense separator>
           <template v-for="statementId in argument.statement_array" :key="statementId">
-            <StatementComponent v-if="argumentStatementById(statementId)" sideStats
+            <q-separator />
+            <StatementComponent v-if="argumentStatementById(statementId)" sideStats flat
               :statement="argumentStatementById(statementId) as Statement" />
             <q-item v-else :inset-level=.67>
               <q-item-section>
                 <q-item-label class="text-weight-bold">Statement ID: {{ statementId }} not found!</q-item-label>
               </q-item-section>
             </q-item>
+
           </template>
+          <q-separator />
           <q-item :inset-level=.67>
             <q-item-section>
               <q-item-label>Thereby {{ conclusionLabel }} the conclusion:</q-item-label>
