@@ -47,21 +47,16 @@ export function useSupabase() {
   /**
    * Creates a new statement in the database
    */
-  const createNewStatement = async (text: string): Promise<{ id: number } | { error: string }> => {
-    try {
-      const { data, error } = await supabase
-        .from('statement')
-        .insert([{ statement_text: text }])
-        .select('id')
-        .single();
-
-      if (error) {
-        return { error: error.message };
-      }
-      return { id: data.id };
-    } catch (error) {
-      return { error: error instanceof Error ? error.message : 'Unknown error' };
-    }
+  const createNewStatement = async (
+    text: string,
+  ): Promise<Database['public']['Tables']['statements']['Row']> => {
+    const { data, error } = await supabase
+      .from('statements')
+      .insert([{ statement_text: text }])
+      .select('*')
+      .single();
+    if (error) throw error;
+    return data;
   };
 
   /**
