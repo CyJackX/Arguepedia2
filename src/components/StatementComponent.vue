@@ -10,12 +10,15 @@ defineProps<{
   sideStats?: boolean;
   bold?: boolean;
   insetLevel?: number;
+  flat?: boolean;
+  bordered?: boolean;
+
 }>()
 
 </script>
 
 <template>
-  <q-card class="q-mb-sm">
+  <q-card class="q-mb-sm" :flat="flat">
     <q-item clickable @click="() => router.push(`/statement/${statement.id}`)" :inset-level="insetLevel">
       <q-item-section side class="text-caption" v-if="sideStats">
         <q-item-label>
