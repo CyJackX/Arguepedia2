@@ -30,12 +30,14 @@ export function useSupabase() {
     search_term: string,
     offset_value: number,
     limit_value: number,
+    sort_method: string,
   ): Promise<[Statement[], number]> => {
     console.log('Searching for statements:', search_term);
     const { data, error } = await supabase.rpc('search_statements', {
       search_term,
       offset_value,
       limit_value,
+      sort_method,
     });
     if (error) {
       console.error('Error in searchStatements:', error);

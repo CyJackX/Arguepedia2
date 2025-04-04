@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, inject } from 'vue';
+import type { Ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useSupabase } from '../composables/useSupabase';
 import type { Statement } from '../types/models';
@@ -9,7 +10,6 @@ import type { PostgrestError } from '@supabase/supabase-js';
 
 const route = useRoute();
 const supabase = useSupabase();
-const isLoading = ref(true);
 const searchResults = ref<Statement[]>([]);
 const itemsPerPage = 10;
 const currentPage = ref(1);
@@ -18,19 +18,22 @@ const totalPages = computed(() => Math.ceil(totalResults.value / itemsPerPage));
 const authStore = useAuthStore();
 const router = useRouter();
 const errorMessage = ref<PostgrestError | null>(null);
-const query = computed(() => route.query.q as string);
+
+const { searchTerm, searchTrigger } = inject('search') as {
+  searchTerm: Ref<string>,
+  searchTrigger: Ref<number>
+};
 
 const SORT_OPTIONS = [
-  { value: 'created_at', label: 'Newest' },
-  { value: '-created_at', label: 'Oldest' },
+  { value: 'similarity', label: 'Most Relevant' },
+  { value: 'created_at', label: 'Newest First' },
   { value: 'comments_count', label: 'Most Comments' },
   { value: 'supporting_arguments_count', label: 'Most Supporting' },
   { value: 'opposing_arguments_count', label: 'Most Opposing' },
-  { value: 'ratio', label: 'Supporting/Opposing Ratio' },
-  { value: 'wilson', label: 'Score' }
+  { value: 'even_support', label: 'Most Evenly Argued' }
 ] as const;
 
-const sortMethod = ref<typeof SORT_OPTIONS[number]>(SORT_OPTIONS[6]);
+const sortMethod = ref<typeof SORT_OPTIONS[number]>(SORT_OPTIONS[0]);
 
 // Compute current page of statements - no sorting needed anymore
 const paginatedStatements = computed(() => searchResults.value);
@@ -39,7 +42,7 @@ const paginatedStatements = computed(() => searchResults.value);
 const pageCache = ref<Map<number, Statement[]>>(new Map());
 
 const loadStatements = async (page: number = currentPage.value) => {
-  if (!query.value) return;
+  if (!searchTerm.value) return;
 
   // Check if page is already in cache
   const cachedPage = pageCache.value.get(page);
@@ -49,13 +52,13 @@ const loadStatements = async (page: number = currentPage.value) => {
     return;
   }
 
-  isLoading.value = true;
   try {
     const offset = (page - 1) * itemsPerPage;
     const [statements, total] = await supabase.searchStatements(
-      query.value,
+      searchTerm.value,
       offset,
-      itemsPerPage
+      itemsPerPage,
+      sortMethod.value.value // Pass just the value string
     );
 
     // Cache the results
@@ -65,8 +68,6 @@ const loadStatements = async (page: number = currentPage.value) => {
   } catch (error) {
     console.error('Error loading statements:', error);
     searchResults.value = [];
-  } finally {
-    isLoading.value = false;
   }
 };
 
@@ -104,10 +105,10 @@ const resetSearch = () => {
   pageCache.value.clear(); // Clear the cache on new search
 };
 
-// Watch for route query changes only
+// Watch for both route changes and search triggers
 watch(
-  () => route.query.q,
-  async (newQuery) => {
+  [() => route.query.q, searchTrigger],
+  async ([newQuery]) => {
     if (typeof newQuery === 'string') {
       try {
         resetSearch();
@@ -119,6 +120,12 @@ watch(
   },
   { immediate: true }
 );
+
+watch(sortMethod, () => {
+  console.log('Sort method changed:', sortMethod.value);
+  resetSearch();
+  void loadStatements();
+});
 </script>
 
 <template>
@@ -162,18 +169,9 @@ watch(
     <!-- Search results header -->
     <q-item class="row justify-between items-center">
       <h6 class="q-my-none">Existing Similar Statements</h6>
-      <q-select dense outlined v-model="sortMethod" :options="SORT_OPTIONS" label="Sort by" class="q-ml-md" />
+      <q-select behavior="menu" transition-duration="0" options-dense outlined v-model="sortMethod"
+        :options="SORT_OPTIONS" label="Sort by" class="q-ml-md" />
     </q-item>
-
-    <!-- Loading state -->
-    <div v-if="isLoading" class="flex justify-center q-my-xl">
-      <q-spinner-dots color="primary" size="42px" />
-    </div>
-
-    <!-- No results state -->
-    <div v-else-if="!searchResults.length" class="text-center q-my-xl text-grey-7">
-      No results found.
-    </div>
 
     <!-- Results list -->
 

@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, onMounted, provide, watch } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from 'src/stores/authStore';
 import { debounce } from 'lodash';
 
 const router = useRouter();
-const searchTerm = ref('');
+const route = useRoute();
+const searchTerm = ref(route.query.q as string);
+const searchTrigger = ref(0);
 const authStore = useAuthStore();
 const loadingUser = ref(false);
 
@@ -32,6 +34,7 @@ const handleSearch = async () => {
         path: '/search',
         query: { q: searchTerm.value }
       });
+      searchTrigger.value++;
     } catch (error) {
       console.error('Navigation error:', error);
       // Handle navigation failure if needed
@@ -40,6 +43,20 @@ const handleSearch = async () => {
 };
 
 const debouncedSearch = debounce(handleSearch, 500);
+
+watch(
+  () => route.query.q,
+  (newQuery) => {
+    if (typeof newQuery === 'string') {
+      searchTerm.value = newQuery;
+    }
+  }
+);
+
+provide('search', {
+  searchTerm,
+  searchTrigger
+});
 
 </script>
 <template>
