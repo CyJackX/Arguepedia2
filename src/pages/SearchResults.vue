@@ -10,15 +10,15 @@ import type { PostgrestError } from '@supabase/supabase-js';
 const route = useRoute();
 const supabase = useSupabase();
 const isLoading = ref(true);
-const statements = ref<Statement[]>([]);
+const searchResults = ref<Statement[]>([]);
 const itemsPerPage = 10;
-const maxResults = 50; // Set total results to return from backend, pagination client-side.
 const currentPage = ref(1);
-// Compute total pages based on actual results
-const totalPages = computed(() => Math.ceil(statements.value.length / itemsPerPage));
+const totalResults = ref(0);
+const totalPages = computed(() => Math.ceil(totalResults.value / itemsPerPage));
 const authStore = useAuthStore();
 const router = useRouter();
 const errorMessage = ref<PostgrestError | null>(null);
+const query = computed(() => route.query.q as string);
 
 const SORT_OPTIONS = [
   { value: 'created_at', label: 'Newest' },
@@ -32,67 +32,42 @@ const SORT_OPTIONS = [
 
 const sortMethod = ref<typeof SORT_OPTIONS[number]>(SORT_OPTIONS[6]);
 
-// Wilson score interval calculation
-const calculateWilsonScore = (up: number, down: number): number => {
-  const n = up + down;
-  if (n === 0) return 0;
+// Compute current page of statements - no sorting needed anymore
+const paginatedStatements = computed(() => searchResults.value);
 
-  // z=2.33 for 98% confidence
-  const z = 2.33;
-  const phat = up / n;
+// Cache structure to store already loaded pages
+const pageCache = ref<Map<number, Statement[]>>(new Map());
 
-  // Wilson score interval calculation
-  const numerator = phat + (z * z) / (2 * n);
-  const denominator = 1 + (z * z) / n;
-  const radical = z * Math.sqrt((phat * (1 - phat) + (z * z) / (4 * n)) / n);
+const loadStatements = async (page: number = currentPage.value) => {
+  if (!query.value) return;
 
-  return (numerator - radical) / denominator;
-};
+  // Check if page is already in cache
+  const cachedPage = pageCache.value.get(page);
+  if (cachedPage) {
+    console.log('Cache hit for page', page);
+    searchResults.value = cachedPage;
+    return;
+  }
 
-const sortedStatements = computed(() => {
-  return [...statements.value].sort((a: Statement, b: Statement) => {
-    switch (sortMethod.value.value) {
-      case 'created_at':
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      case '-created_at':
-        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-      case 'comments_count':
-        return b.comments_count - a.comments_count;
-      case 'supporting_arguments_count':
-        return b.supporting_arguments_count - a.supporting_arguments_count;
-      case 'opposing_arguments_count':
-        return b.opposing_arguments_count - a.opposing_arguments_count;
-      case 'ratio': {
-        const ratioA = a.supporting_arguments_count / (a.opposing_arguments_count || 1);
-        const ratioB = b.supporting_arguments_count / (b.opposing_arguments_count || 1);
-        return ratioB - ratioA;
-      }
-      case 'wilson': {
-        const scoreA = calculateWilsonScore(a.supporting_arguments_count, a.opposing_arguments_count);
-        const scoreB = calculateWilsonScore(b.supporting_arguments_count, b.opposing_arguments_count);
-        return scoreB - scoreA;
-      }
-      default:
-        return 0;
-    }
-  });
-});
-
-// Compute current page of statements
-const paginatedStatements = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage;
-  const end = start + itemsPerPage;
-  return sortedStatements.value.slice(start, end);
-});
-
-const searchStatements = async (query: string) => {
-  if (!query) return;
-  // Load 100 results at once
   isLoading.value = true;
-  const results = await supabase.searchStatements(query, 0, maxResults);
-  statements.value = results;
-  currentPage.value = 1; // Reset to first page on new search
-  isLoading.value = false;
+  try {
+    const offset = (page - 1) * itemsPerPage;
+    const [statements, total] = await supabase.searchStatements(
+      query.value,
+      offset,
+      itemsPerPage
+    );
+
+    // Cache the results
+    pageCache.value.set(page, statements);
+    searchResults.value = statements;
+    totalResults.value = total;
+  } catch (error) {
+    console.error('Error loading statements:', error);
+    searchResults.value = [];
+  } finally {
+    isLoading.value = false;
+  }
 };
 
 const sanitizeQuery = (query: string): string => {
@@ -100,7 +75,6 @@ const sanitizeQuery = (query: string): string => {
   const sanitized = query
     .replace(/[^a-zA-Z0-9\s,\-'"()!$#%]/g, '') // Keep letters, numbers, spaces, ,;-:'"()!
     .trim(); // Remove leading/trailing spaces
-
 
   // Step 3: Capitalize the first letter
   const capitalized = sanitized.charAt(0).toUpperCase() + sanitized.slice(1);
@@ -123,6 +97,12 @@ const createNewStatement = async () => {
   }
 };
 
+const resetSearch = () => {
+  searchResults.value = [];
+  totalResults.value = 0;
+  currentPage.value = 1;
+  pageCache.value.clear(); // Clear the cache on new search
+};
 
 // Watch for route query changes only
 watch(
@@ -130,7 +110,8 @@ watch(
   async (newQuery) => {
     if (typeof newQuery === 'string') {
       try {
-        await searchStatements(newQuery);
+        resetSearch();
+        await loadStatements();
       } catch (error) {
         console.error('Search error:', error);
       }
@@ -190,7 +171,7 @@ watch(
     </div>
 
     <!-- No results state -->
-    <div v-else-if="!statements.length" class="text-center q-my-xl text-grey-7">
+    <div v-else-if="!searchResults.length" class="text-center q-my-xl text-grey-7">
       No results found.
     </div>
 
@@ -202,8 +183,8 @@ watch(
   </q-list>
 
   <!-- Pagination -->
-  <div v-if="statements.length" class="flex justify-center q-mt-lg">
+  <div v-if="searchResults.length" class="flex justify-center q-mt-lg">
     <q-pagination v-model="currentPage" :max="totalPages" :max-pages="6" boundary-numbers direction-links
-      color="primary" active-color="primary" />
+      color="primary" active-color="primary" @update:model-value="loadStatements" />
   </div>
 </template>

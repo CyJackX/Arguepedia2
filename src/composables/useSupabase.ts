@@ -30,7 +30,7 @@ export function useSupabase() {
     search_term: string,
     offset_value: number,
     limit_value: number,
-  ): Promise<Database['public']['Functions']['search_statements']['Returns']> => {
+  ): Promise<[Statement[], number]> => {
     console.log('Searching for statements:', search_term);
     const { data, error } = await supabase.rpc('search_statements', {
       search_term,
@@ -39,9 +39,11 @@ export function useSupabase() {
     });
     if (error) {
       console.error('Error in searchStatements:', error);
-      return [];
+      return [[], 0];
     }
-    return data || [];
+
+    const { data: statements, meta } = data[0];
+    return [statements as Statement[], meta.total_count];
   };
 
   /**
