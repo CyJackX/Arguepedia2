@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from 'src/stores/authStore';
 import { debounce } from 'lodash';
@@ -9,9 +9,6 @@ const searchTerm = ref('');
 const authStore = useAuthStore();
 const loadingUser = ref(false);
 
-const userProfileLabel = computed(() =>
-  authStore.userProfile?.username || 'Profile'
-);
 
 onMounted(async () => {
   if (authStore.user && !authStore.userProfile) {
@@ -43,6 +40,7 @@ const handleSearch = async () => {
 };
 
 const debouncedSearch = debounce(handleSearch, 500);
+
 </script>
 <template>
   <q-layout view="hHh lpR fFf">
@@ -59,7 +57,7 @@ const debouncedSearch = debounce(handleSearch, 500);
           <q-route-tab to="/about" label="About" />
           <q-route-tab v-if="loadingUser" label="Loading..." />
           <q-route-tab v-else-if="!authStore.user?.id" to="/auth" label="Login/Register" />
-          <q-route-tab v-else to="/user" :label="userProfileLabel" />
+          <q-route-tab v-else to="/user" label="Settings" />
         </q-tabs>
       </q-toolbar>
 
@@ -67,7 +65,7 @@ const debouncedSearch = debounce(handleSearch, 500);
         <q-space />
         <q-input v-model="searchTerm" type="search" placeholder="Search statements or create your own..."
           class="q-px-md q-ma-md" @update:model-value="debouncedSearch" @keyup.enter="handleSearch" dense outlined
-          bg-color="white" maxlength="140" counter>
+          bg-color="white" maxlength="140" counter style="width:600px ;max-width: 80%">
         </q-input>
         <q-space />
       </q-toolbar>
