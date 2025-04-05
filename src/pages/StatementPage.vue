@@ -1,18 +1,14 @@
 <script setup lang="ts">
-import { useRoute, useRouter } from 'vue-router';
-import { ref, watch, computed } from 'vue';
-import ArgumentTab from '../components/ArgumentTab.vue';
-import CommentTab from '../components/CommentTab.vue'
+import { useRoute } from 'vue-router';
+import { watch, computed } from 'vue';
 import UsernameButton from '../components/UsernameButton.vue'
 import { useStatementStore } from '../stores/statementStore';
 
 const route = useRoute();
-const router = useRouter();
 const statementStore = useStatementStore();
 
 // Keep this for route watching only
 const statementId = computed(() => parseInt(route.params.id as string));
-const activeTab = ref(route.query.tab?.toString() || 'comments');
 
 watch(statementId, async (newId) => {
   if (statementStore.currentStatement?.id === newId) {
@@ -20,10 +16,6 @@ watch(statementId, async (newId) => {
   }
   await statementStore.fetchStatement(newId);
 }, { immediate: true });
-
-watch(activeTab, async (newTab) => {
-  await router.replace({ query: { ...route.query, tab: newTab } });
-});
 
 </script>
 
@@ -42,31 +34,22 @@ watch(activeTab, async (newTab) => {
         </q-card-section>
       </q-card>
 
-      <q-tabs v-model="activeTab" dense class="text-grey" active-color="primary" indicator-color="primary"
-        align="justify">
-        <q-tab name="opposing" icon="close"
+      <!-- QTabs without v-model, using QRouteTab for route-driven tabs -->
+      <q-tabs dense class="text-grey" active-color="primary" indicator-color="primary" align="justify">
+        <q-route-tab name="opposing" :to="{ name: 'opposing', params: { id: statementStore.currentStatement?.id } }"
+          icon="close"
           :label="`Opposing Arguments (${statementStore.currentStatement?.opposing_arguments_count || 0})`" />
-        <q-tab name="comments" icon="comment"
-          :label="`Comments (${statementStore.currentStatement?.comments_count || 0})`" />
-        <q-tab name="supporting" icon="check"
+        <q-route-tab name="comments" :to="{ name: 'comments', params: { id: statementStore.currentStatement?.id } }"
+          icon="comment" :label="`Comments (${statementStore.currentStatement?.comments_count || 0})`" />
+        <q-route-tab name="supporting" :to="{ name: 'supporting', params: { id: statementStore.currentStatement?.id } }"
+          icon="check"
           :label="`Supporting Arguments (${statementStore.currentStatement?.supporting_arguments_count || 0})`" />
       </q-tabs>
 
       <q-separator />
 
-      <q-tab-panels v-model="activeTab" animated>
-        <q-tab-panel name="opposing">
-          <ArgumentTab :statementId="statementStore.currentStatement?.id as number" type="OPPOSES" />
-        </q-tab-panel>
-
-        <q-tab-panel name="comments">
-          <CommentTab :parent_id="statementStore.currentStatement?.id as number" :parent_type="'statement'" />
-        </q-tab-panel>
-
-        <q-tab-panel name="supporting">
-          <ArgumentTab :statementId="statementStore.currentStatement?.id as number" type="SUPPORTS" />
-        </q-tab-panel>
-      </q-tab-panels>
+      <!-- Router-view renders the active tab content -->
+      <router-view />
     </div>
   </div>
 </template>

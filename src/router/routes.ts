@@ -20,6 +20,27 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'statement/:id',
         component: () => import('pages/StatementPage.vue'),
+        children: [
+          {
+            path: 'opposing',
+            name: 'opposing',
+            component: () => import('../components/ArgumentTab.vue'),
+            props: (route) => ({ statementId: Number(route.params.id), type: 'OPPOSES' }),
+          },
+          {
+            path: 'comments',
+            name: 'comments',
+            component: () => import('../components/CommentTab.vue'),
+            props: (route) => ({ parent_id: Number(route.params.id), parent_type: 'statement' }),
+          },
+          {
+            path: 'supporting',
+            name: 'supporting',
+            component: () => import('../components/ArgumentTab.vue'),
+            props: (route) => ({ statementId: Number(route.params.id), type: 'SUPPORTS' }),
+          },
+          { path: '', redirect: { name: 'comments' } },
+        ],
       },
       {
         path: 'argument/:id',
