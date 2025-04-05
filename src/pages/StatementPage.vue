@@ -1,36 +1,39 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router';
-import { ref, onMounted, watch, computed } from 'vue';
+import { ref, watch, computed } from 'vue';
 import ArgumentTab from '../components/ArgumentTab.vue';
 import CommentTab from '../components/CommentTab.vue'
 import UsernameButton from '../components/UsernameButton.vue'
 import { useSupabase } from '../composables/useSupabase';
 import type { Statement } from '../types/models';
+import { useStatementStore } from '../stores/statementStore';
 const route = useRoute();
+const statementStore = useStatementStore();
 const statementId = computed(() => parseInt(route.params.id as string));
 const router = useRouter();
 const currentStatement = ref<Statement | null>(null);
-const isLoading = ref(true);
+const isLoading = ref(false);
 const activeTab = ref(route.query.tab?.toString() || 'comments');
 
 const loadStatement = async () => {
   try {
+    isLoading.value = true;
     console.log('Fetching statement:', statementId.value);
     const supabase = useSupabase();
     currentStatement.value = await supabase.fetchStatement(statementId.value);
   } catch (error) {
     console.error('Failed to fetch statement:', error);
+  } finally {
+    isLoading.value = false;
   }
-  isLoading.value = false;
 };
 
-onMounted(async () => {
+watch(statementId, async (newId) => {
+  if (statementStore.currentStatement?.id === newId) {
+    return; // Already have the correct statement loaded
+  }
   await loadStatement();
-});
-
-watch(statementId, async () => {
-  await loadStatement();
-});
+}, { immediate: true }); // This handles the initial load too
 
 watch(activeTab, async (newTab) => {
   await router.replace({ query: { ...route.query, tab: newTab } });

@@ -4,7 +4,7 @@ import type { Ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useSupabase } from '../composables/useSupabase';
 import type { PostgrestError } from '@supabase/supabase-js';
-
+import { useAuthStore } from '../stores/authStore';
 const { searchTerm } = inject('search') as {
   searchTerm: Ref<string>,
   searchTrigger: Ref<number>
@@ -13,7 +13,7 @@ const { searchTerm } = inject('search') as {
 const router = useRouter();
 const supabase = useSupabase();
 const errorMessage = ref<PostgrestError | null>(null);
-
+const authStore = useAuthStore();
 const ERROR_MESSAGES = {
   '23505': 'This statement already exists.',
   '23514': 'Statement is not properly formatted.',
@@ -56,30 +56,38 @@ const createNewStatement = async () => {
   }
 };
 </script>
-
 <template>
-  <q-item class="column items-center">
-    <q-item-section>
-      <h6 class="q-my-none">Create New Statement</h6>
-    </q-item-section>
-    <q-item-section>
-      <q-card>
-        <q-card-section>
-          <div class="text-weight-bold">
-            {{ sanitizeQuery(searchTerm) }}
-          </div>
+  <template v-if="authStore.user">
+    <q-item class="column items-center">
+      <q-item-section>
+        <h6 class="q-my-none">Create New Statement</h6>
+      </q-item-section>
+      <q-item-section>
+        <q-card>
+          <q-card-section>
+            <div class="text-weight-bold">
+              {{ sanitizeQuery(searchTerm) }}
+            </div>
+          </q-card-section>
+        </q-card>
+      </q-item-section>
+      <q-item-section>
+        <q-card-section v-if="errorMessage">
+          <div class="text-negative">{{ friendlyErrorMessage }}</div>
         </q-card-section>
-      </q-card>
-    </q-item-section>
-    <q-item-section>
-      <q-card-section v-if="errorMessage">
-        <div class="text-negative">{{ friendlyErrorMessage }}</div>
-      </q-card-section>
-    </q-item-section>
-    <q-item-section>
-      <q-card-actions>
-        <q-btn label="Create Statement" color="primary" @click="createNewStatement" />
-      </q-card-actions>
-    </q-item-section>
-  </q-item>
+      </q-item-section>
+      <q-item-section>
+        <q-card-actions>
+          <q-btn label="Create Statement" color="primary" @click="createNewStatement" />
+        </q-card-actions>
+      </q-item-section>
+    </q-item>
+  </template>
+  <template v-else>
+    <q-item>
+      <q-item-section>
+        <h6 class="q-my-none">Login to Create New Statement</h6>
+      </q-item-section>
+    </q-item>
+  </template>
 </template>

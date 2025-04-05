@@ -6,7 +6,6 @@ import { useSupabase } from '../composables/useSupabase';
 import type { Statement } from '../types/models';
 import StatementComponent from '../components/StatementComponent.vue';
 import CreateStatement from '../components/CreateStatement.vue';
-import { useAuthStore } from '../stores/authStore';
 
 const route = useRoute();
 const supabase = useSupabase();
@@ -15,7 +14,6 @@ const itemsPerPage = 10;
 const currentPage = ref(1);
 const totalResults = ref(0);
 const totalPages = computed(() => Math.ceil(totalResults.value / itemsPerPage));
-const authStore = useAuthStore();
 
 const { searchTerm, searchTrigger } = inject('search') as {
   searchTerm: Ref<string>,
@@ -39,7 +37,7 @@ const paginatedStatements = computed(() => searchResults.value);
 // Cache structure to store already loaded pages
 const pageCache = ref<Map<number, Statement[]>>(new Map());
 
-const loadStatements = async (page: number = currentPage.value) => {
+const loadSearchResults = async (page: number = currentPage.value) => {
   if (!searchTerm.value) return;
 
   // Check if page is already in cache
@@ -68,7 +66,6 @@ const loadStatements = async (page: number = currentPage.value) => {
     searchResults.value = [];
   }
 };
-
 const resetSearch = () => {
   searchResults.value = [];
   totalResults.value = 0;
@@ -76,14 +73,18 @@ const resetSearch = () => {
   pageCache.value.clear(); // Clear the cache on new search
 };
 
+const newSearch = async () => {
+  resetSearch();
+  await loadSearchResults();
+}
+
 // Watch for both route changes and search triggers
 watch(
   [() => route.query.q, searchTrigger],
   async ([newQuery]) => {
     if (typeof newQuery === 'string') {
       try {
-        resetSearch();
-        await loadStatements();
+        await newSearch();
       } catch (error) {
         console.error('Search error:', error);
       }
@@ -92,32 +93,18 @@ watch(
   { immediate: true }
 );
 
-watch(sortMethod, () => {
-  console.log('Sort method changed:', sortMethod.value);
-  resetSearch();
-  void loadStatements();
-});
+
 </script>
 
 <template>
   <q-list>
-    <template v-if="authStore.user">
-      <CreateStatement />
-    </template>
-    <template v-else>
-      <q-item>
-        <q-item-section>
-          <h6 class="q-my-none">Login to Create New Statement</h6>
-        </q-item-section>
-      </q-item>
-    </template>
-
+    <CreateStatement />
     <q-separator />
     <!-- Search results header -->
     <q-item class="row justify-between items-center">
       <h6 class="q-my-none">Existing Similar Statements</h6>
       <q-select behavior="menu" transition-duration="0" options-dense outlined v-model="sortMethod"
-        :options="SORT_OPTIONS" label="Sort by" class="q-ml-md" />
+        @update:model-value="newSearch" :options="SORT_OPTIONS" label="Sort by" class="q-ml-md" />
     </q-item>
 
     <!-- Results list -->
@@ -130,6 +117,6 @@ watch(sortMethod, () => {
   <!-- Pagination -->
   <div v-if="searchResults.length" class="flex justify-center q-mt-lg">
     <q-pagination v-model="currentPage" :max="totalPages" :max-pages="6" boundary-numbers direction-links
-      color="primary" active-color="primary" @update:model-value="loadStatements" />
+      color="primary" active-color="primary" @update:model-value="loadSearchResults" />
   </div>
 </template>

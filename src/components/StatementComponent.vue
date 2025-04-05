@@ -2,9 +2,11 @@
 import type { Statement } from '../types/models';
 import { useRouter } from 'vue-router';
 import UsernameButton from './UsernameButton.vue';
+import { useStatementStore } from '../stores/statementStore';
 const router = useRouter();
+const statementStore = useStatementStore();
 
-defineProps<{
+const props = defineProps<{
   statement: Statement;
   bottomStats?: boolean;
   sideStats?: boolean;
@@ -12,14 +14,18 @@ defineProps<{
   insetLevel?: number;
   flat?: boolean;
   bordered?: boolean;
-
 }>()
+
+const navigateToStatement = () => {
+  statementStore.setCurrentStatement(props.statement);
+  void router.push(`/statement/${props.statement.id}`);
+}
 
 </script>
 
 <template>
   <q-card class="q-mb-sm" :flat="flat">
-    <q-item clickable @click="() => router.push(`/statement/${statement.id}`)" :inset-level="insetLevel">
+    <q-item clickable @click="navigateToStatement" :inset-level="insetLevel">
       <q-item-section side class="text-caption" v-if="sideStats">
         <q-item-label>
           <q-icon color="green" name="check" /> {{ statement.supporting_arguments_count }}

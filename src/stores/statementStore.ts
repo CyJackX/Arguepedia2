@@ -1,6 +1,7 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
 import type { Statement, Argument } from '../types/models';
 import { useSupabase } from 'src/composables/useSupabase';
+const supabase = useSupabase();
 
 export const useStatementStore = defineStore('statement', {
   state: () => ({
@@ -13,17 +14,13 @@ export const useStatementStore = defineStore('statement', {
       this.currentStatement = statement;
     },
     async fetchStatement(id: number) {
-      const supabase = useSupabase();
-      const statement = await supabase.fetchStatement(id);
-      this.setCurrentStatement(statement);
+      this.setCurrentStatement(await supabase.fetchStatement(id));
     },
     setCurrentArgument(argument: Argument | null) {
       this.currentArgument = argument;
     },
     async fetchArgument(id: number) {
-      const supabase = useSupabase();
-      const argument = await supabase.fetchArgumentbyId(id);
-      this.setCurrentArgument(argument);
+      this.setCurrentArgument(await supabase.fetchArgumentbyId(id));
     },
   },
 });
