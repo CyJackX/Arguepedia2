@@ -24,6 +24,7 @@ watch(statementId, async (newId) => {
 watch(activeTab, async (newTab) => {
   await router.replace({ query: { ...route.query, tab: newTab } });
 });
+
 </script>
 
 <template>
@@ -43,9 +44,12 @@ watch(activeTab, async (newTab) => {
 
       <q-tabs v-model="activeTab" dense class="text-grey" active-color="primary" indicator-color="primary"
         align="justify">
-        <q-tab name="opposing" icon="close" label="Opposing Arguments" />
-        <q-tab name="comments" icon="comment" label="Comments" />
-        <q-tab name="supporting" icon="check" label="Supporting Arguments" />
+        <q-tab name="opposing" icon="close"
+          :label="`Opposing Arguments (${statementStore.currentStatement?.opposing_arguments_count || 0})`" />
+        <q-tab name="comments" icon="comment"
+          :label="`Comments (${statementStore.currentStatement?.comments_count || 0})`" />
+        <q-tab name="supporting" icon="check"
+          :label="`Supporting Arguments (${statementStore.currentStatement?.supporting_arguments_count || 0})`" />
       </q-tabs>
 
       <q-separator />
