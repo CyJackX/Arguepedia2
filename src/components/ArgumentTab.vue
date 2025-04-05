@@ -5,11 +5,11 @@ import type { StatementType } from '../types/models';
 import { ref, watchEffect } from 'vue';
 import { useSupabase } from '../composables/useSupabase';
 import { useStatementStore } from '../stores/statementStore';
-
+import CreateArgumentComponent from './CreateArgumentComponent.vue';
 const statementStore = useStatementStore();
 const argumentList = ref<Argument[]>([]);
 const supabase = useSupabase();
-const isLoading = ref(false);
+
 const props = defineProps<{
   type: StatementType;
 }>();
@@ -17,7 +17,6 @@ const props = defineProps<{
 // Option 1: Proper error and loading handling
 watchEffect(() => {
   // The effect itself is synchronous
-  isLoading.value = true;
 
   // The async work is moved into a separate promise
   supabase.fetchArguments_by_conclusion(statementStore.currentStatement?.id as number, props.type)
@@ -27,16 +26,21 @@ watchEffect(() => {
     .catch(error => {
       console.error('Failed to fetch arguments:', error);
     })
-    .finally(() => {
-      isLoading.value = false;
-    });
 });
 </script>
 
 <template>
-  <div v-if="isLoading">Loading...</div>
-  <div v-else-if="argumentList.length">
-    <ArgumentComponent v-for="argument in argumentList" :key="argument.id" :argument="argument" />
-  </div>
-  <div v-else>No {{ type === 'SUPPORTS' ? 'Supporting' : 'Opposing' }} Arguments! Make one?</div>
+  <q-list>
+    <q-item class="row justify-center">
+      <CreateArgumentComponent />
+    </q-item>
+    <template v-if="argumentList.length">
+      <q-item v-for="argument in argumentList" :key="argument.id">
+        <ArgumentComponent :argument="argument" />
+      </q-item>
+    </template>
+    <template v-else>
+      <div>No {{ type === 'SUPPORTS' ? 'Supporting' : 'Opposing' }} Arguments! Make one?</div>
+    </template>
+  </q-list>
 </template>
