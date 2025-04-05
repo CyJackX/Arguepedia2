@@ -99,6 +99,7 @@ watch(
 <template>
   <q-list>
     <CreateStatement />
+
     <q-separator />
     <!-- Search results header -->
     <q-item class="row justify-between items-center">
@@ -108,9 +109,13 @@ watch(
     </q-item>
 
     <!-- Results list -->
-
-    <template v-for="statement in paginatedStatements" :key="statement.id">
-      <StatementComponent :statement="statement" bottomStats />
+    <template v-if="searchResults.length">
+      <template v-for="statement in paginatedStatements" :key="statement.id">
+        <StatementComponent :statement="statement" bottomStats />
+      </template>
+    </template>
+    <template v-else>
+      <div>No results found</div>
     </template>
   </q-list>
 
