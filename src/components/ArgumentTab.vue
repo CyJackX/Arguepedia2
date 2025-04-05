@@ -4,12 +4,13 @@ import ArgumentComponent from './ArgumentComponent.vue';
 import type { StatementType } from '../types/models';
 import { ref, watchEffect } from 'vue';
 import { useSupabase } from '../composables/useSupabase';
+import { useStatementStore } from '../stores/statementStore';
 
+const statementStore = useStatementStore();
 const argumentList = ref<Argument[]>([]);
 const supabase = useSupabase();
 const isLoading = ref(false);
 const props = defineProps<{
-  statementId: number;
   type: StatementType;
 }>();
 
@@ -19,7 +20,7 @@ watchEffect(() => {
   isLoading.value = true;
 
   // The async work is moved into a separate promise
-  supabase.fetchArguments_by_conclusion(props.statementId, props.type)
+  supabase.fetchArguments_by_conclusion(statementStore.currentStatement?.id as number, props.type)
     .then(results => {
       argumentList.value = results;
     })
