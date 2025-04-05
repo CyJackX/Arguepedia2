@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, watch, inject } from 'vue';
 import type { Ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { useSupabase } from '../composables/useSupabase';
 import type { Statement } from '../types/models';
-import StatementComponent from '../components/StatementComponent.vue'
+import StatementComponent from '../components/StatementComponent.vue';
+import CreateStatement from '../components/CreateStatement.vue';
 import { useAuthStore } from '../stores/authStore';
-import type { PostgrestError } from '@supabase/supabase-js';
 
 const route = useRoute();
 const supabase = useSupabase();
@@ -16,8 +16,6 @@ const currentPage = ref(1);
 const totalResults = ref(0);
 const totalPages = computed(() => Math.ceil(totalResults.value / itemsPerPage));
 const authStore = useAuthStore();
-const router = useRouter();
-const errorMessage = ref<PostgrestError | null>(null);
 
 const { searchTerm, searchTrigger } = inject('search') as {
   searchTerm: Ref<string>,
@@ -71,33 +69,6 @@ const loadStatements = async (page: number = currentPage.value) => {
   }
 };
 
-const sanitizeQuery = (query: string): string => {
-  // Step 1: Whitelist alphanumeric, spaces, and dialogue/argumentation symbols
-  const sanitized = query
-    .replace(/[^a-zA-Z0-9\s,\-'"()!$#%]/g, '') // Keep letters, numbers, spaces, ,;-:'"()!
-    .trim(); // Remove leading/trailing spaces
-
-  // Step 3: Capitalize the first letter
-  const capitalized = sanitized.charAt(0).toUpperCase() + sanitized.slice(1);
-
-  // Step 4: Ensure it ends with a period (not a question mark)
-  const endsWithValidPunctuation = /[.!]$/.test(capitalized);
-  const cleaned = capitalized.replace(/\?$/, ''); // Remove trailing ? if present
-  return endsWithValidPunctuation ? cleaned : cleaned + '.';
-};
-
-const createNewStatement = async () => {
-  try {
-    console.log('Creating new statement:', sanitizeQuery(route.query.q as string));
-    const new_statement = await supabase.createNewStatement(sanitizeQuery(route.query.q as string));
-    console.log('New statement created:', new_statement);
-    void router.push(`/statement/${new_statement.id}`);
-  } catch (error) {
-    console.error('Create new statement error:', error);
-    errorMessage.value = error as PostgrestError;
-  }
-};
-
 const resetSearch = () => {
   searchResults.value = [];
   totalResults.value = 0;
@@ -131,31 +102,7 @@ watch(sortMethod, () => {
 <template>
   <q-list>
     <template v-if="authStore.user">
-      <!-- Create New Statement-->
-      <q-item class="column items-center">
-        <q-item-section>
-          <h6 class="q-my-none">Create New Statement</h6>
-        </q-item-section>
-        <q-item-section>
-          <q-card>
-            <q-card-section>
-              <div class="text-weight-bold">
-                {{ sanitizeQuery(route.query.q as string) }}
-              </div>
-            </q-card-section>
-          </q-card>
-        </q-item-section>
-        <q-item-section>
-          <q-card-section v-if="errorMessage">
-            <div class="text-negative">{{ errorMessage.message }}</div>
-          </q-card-section>
-        </q-item-section>
-        <q-item-section>
-          <q-card-actions>
-            <q-btn label="Create Statement" color="primary" @click="createNewStatement" />
-          </q-card-actions>
-        </q-item-section>
-      </q-item>
+      <CreateStatement />
     </template>
     <template v-else>
       <q-item>
