@@ -5,9 +5,10 @@ import { useSupabase } from '../composables/useSupabase';
 import UsernameButton from './UsernameButton.vue';
 import StatementComponent from './StatementComponent.vue';
 import { useRouter } from 'vue-router';
+import { useStatementStore } from '../stores/statementStore';
 
 const router = useRouter();
-
+const statementStore = useStatementStore();
 const props = defineProps<{
   argument: Argument;
 }>();
@@ -39,6 +40,11 @@ const handleBeforeShow = async () => {
   }
 };
 
+const navigateToArgument = () => {
+  statementStore.setCurrentArgument(props.argument);
+  void router.push(`/argument/${props.argument.id}`);
+};
+
 </script>
 
 <template>
@@ -62,7 +68,7 @@ const handleBeforeShow = async () => {
           </div>
         </q-item-section>
         <q-item-section>
-          <div @click="() => router.push(`/argument/${props.argument.id}`)" class="text-body1 text-weight-bold">{{
+          <div @click="navigateToArgument" class="text-body1 text-weight-bold">{{
             props.argument.title }}</div>
           <div class="text-caption">by
             <UsernameButton :username="props.argument.username" />

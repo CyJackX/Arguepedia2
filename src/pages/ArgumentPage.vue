@@ -1,33 +1,25 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
-import { ref, onMounted, computed } from 'vue';
+import { computed, watch } from 'vue';
 import ArgumentComponent from '../components/ArgumentComponent.vue';
 import CommentTab from '../components/CommentTab.vue';
-import { useSupabase } from '../composables/useSupabase';
-import type { Argument } from '../types/models';
+import { useStatementStore } from '../stores/statementStore';
 
 const route = useRoute();
+const statementStore = useStatementStore();
 const argumentId = computed(() => parseInt(route.params.id as string));
-const currentArgument = ref<Argument | null>(null);
-const isLoading = ref(true);
-const supabase = useSupabase();
 
-const loadArgument = async () => {
-  currentArgument.value = await supabase.fetchArgumentbyId(argumentId.value);
-  isLoading.value = false;
-};
-
-onMounted(async () => {
-  await loadArgument();
-});
+watch(argumentId, async (newId) => {
+  if (statementStore.currentArgument?.id === newId) {
+    return;
+  }
+  await statementStore.fetchArgument(newId);
+}, { immediate: true });
 </script>
 
 <template>
-  <div>
-    <div v-if="isLoading">Loading...</div>
-    <div v-else>
-      <ArgumentComponent :argument="currentArgument as Argument" />
-      <CommentTab :parent_id="currentArgument?.id as number" :parent_type="'argument'" />
-    </div>
-  </div>
+  <template v-if="statementStore.currentArgument">
+    <ArgumentComponent :argument="statementStore.currentArgument" />
+    <CommentTab :parent_id="statementStore.currentArgument.id" parent_type="argument" />
+  </template>
 </template>
