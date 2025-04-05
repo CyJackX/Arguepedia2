@@ -25,6 +25,7 @@ const navigateToStatement = () => {
 
 <template>
   <q-card class="q-mb-sm" :flat="flat">
+    <!-- Top stats -->
     <q-item clickable @click="navigateToStatement" :inset-level="insetLevel">
       <q-item-section side class="text-caption" v-if="sideStats">
         <q-item-label>
@@ -37,9 +38,12 @@ const navigateToStatement = () => {
           <q-icon name="comment" /> {{ statement.comments_count }}
         </q-item-label>
       </q-item-section>
+
+      <!-- Statement text -->
       <q-item-section>
         <q-item-label :style="{ fontWeight: bold ? 'bold' : 'normal' }">{{ statement.statement_text }}</q-item-label>
 
+        <!-- Bottom stats -->
         <q-item-label caption v-if="bottomStats">
           <q-icon color="green" name="check" /> {{ statement.supporting_arguments_count }} | <q-icon color="red"
             name="close" />
