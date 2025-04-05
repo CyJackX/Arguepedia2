@@ -7,6 +7,7 @@ export const useStatementStore = defineStore('statement', {
   state: () => ({
     currentStatement: null as Statement | null,
     currentArgument: null as Argument | null,
+    isLoading: false as boolean,
   }),
   getters: {},
   actions: {
@@ -14,7 +15,9 @@ export const useStatementStore = defineStore('statement', {
       this.currentStatement = statement;
     },
     async fetchStatement(id: number) {
+      this.isLoading = true;
       this.setCurrentStatement(await supabase.fetchStatement(id));
+      this.isLoading = false;
     },
     setCurrentArgument(argument: Argument | null) {
       this.currentArgument = argument;

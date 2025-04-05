@@ -4,36 +4,22 @@ import { ref, watch, computed } from 'vue';
 import ArgumentTab from '../components/ArgumentTab.vue';
 import CommentTab from '../components/CommentTab.vue'
 import UsernameButton from '../components/UsernameButton.vue'
-import { useSupabase } from '../composables/useSupabase';
-import type { Statement } from '../types/models';
 import { useStatementStore } from '../stores/statementStore';
-const route = useRoute();
-const statementStore = useStatementStore();
-const statementId = computed(() => parseInt(route.params.id as string));
-const router = useRouter();
-const currentStatement = ref<Statement | null>(null);
-const isLoading = ref(false);
-const activeTab = ref(route.query.tab?.toString() || 'comments');
 
-const loadStatement = async () => {
-  try {
-    isLoading.value = true;
-    console.log('Fetching statement:', statementId.value);
-    const supabase = useSupabase();
-    currentStatement.value = await supabase.fetchStatement(statementId.value);
-  } catch (error) {
-    console.error('Failed to fetch statement:', error);
-  } finally {
-    isLoading.value = false;
-  }
-};
+const route = useRoute();
+const router = useRouter();
+const statementStore = useStatementStore();
+
+// Keep this for route watching only
+const statementId = computed(() => parseInt(route.params.id as string));
+const activeTab = ref(route.query.tab?.toString() || 'comments');
 
 watch(statementId, async (newId) => {
   if (statementStore.currentStatement?.id === newId) {
     return; // Already have the correct statement loaded
   }
-  await loadStatement();
-}, { immediate: true }); // This handles the initial load too
+  await statementStore.fetchStatement(newId);
+}, { immediate: true });
 
 watch(activeTab, async (newTab) => {
   await router.replace({ query: { ...route.query, tab: newTab } });
@@ -42,15 +28,15 @@ watch(activeTab, async (newTab) => {
 
 <template>
   <div>
-    <div v-if="isLoading">Loading...</div>
+    <div v-if="statementStore.isLoading">Loading...</div>
     <div v-else>
       <q-card class="q-mb-md">
         <q-card-section>
-          <div class="text-h5">{{ currentStatement?.statement_text }}</div>
+          <div class="text-h5">{{ statementStore.currentStatement?.statement_text }}</div>
           <div class="text-subtitle2">
             Created by
-            <UsernameButton :username="currentStatement?.username as string" /> on
-            {{ new Date(currentStatement?.created_at as string).toLocaleDateString() }}
+            <UsernameButton :username="statementStore.currentStatement?.username as string" /> on
+            {{ new Date(statementStore.currentStatement?.created_at as string).toLocaleDateString() }}
           </div>
         </q-card-section>
       </q-card>
@@ -66,18 +52,16 @@ watch(activeTab, async (newTab) => {
 
       <q-tab-panels v-model="activeTab" animated>
         <q-tab-panel name="opposing">
-          <ArgumentTab :statementId="statementId" type="OPPOSES" />
+          <ArgumentTab :statementId="statementStore.currentStatement?.id as number" type="OPPOSES" />
         </q-tab-panel>
 
         <q-tab-panel name="comments">
-          <CommentTab :parent_id="currentStatement?.id as number" :parent_type="'statement'" />
+          <CommentTab :parent_id="statementStore.currentStatement?.id as number" :parent_type="'statement'" />
         </q-tab-panel>
 
         <q-tab-panel name="supporting">
-          <ArgumentTab :statementId="statementId" type="SUPPORTS" />
+          <ArgumentTab :statementId="statementStore.currentStatement?.id as number" type="SUPPORTS" />
         </q-tab-panel>
-
-
       </q-tab-panels>
     </div>
   </div>
