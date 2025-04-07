@@ -25,7 +25,7 @@ const routes: RouteRecordRaw[] = [
             path: 'opposing',
             name: 'opposing',
             component: () => import('../components/ArgumentTab.vue'),
-            props: (route) => ({ statementId: Number(route.params.id), type: 'OPPOSES' }),
+            props: (route) => ({ statementId: Number(route.params.id), argument_type: 'OPPOSES' }),
           },
           {
             path: 'comments',
@@ -37,7 +37,7 @@ const routes: RouteRecordRaw[] = [
             path: 'supporting',
             name: 'supporting',
             component: () => import('../components/ArgumentTab.vue'),
-            props: (route) => ({ statementId: Number(route.params.id), type: 'SUPPORTS' }),
+            props: (route) => ({ statementId: Number(route.params.id), argument_type: 'SUPPORTS' }),
           },
           { path: '', redirect: { name: 'comments' } },
         ],

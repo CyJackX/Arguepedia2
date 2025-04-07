@@ -11,7 +11,7 @@ const argumentList = ref<Argument[]>([]);
 const supabase = useSupabase();
 
 const props = defineProps<{
-  type: StatementType;
+  argument_type: StatementType;
 }>();
 
 // Option 1: Proper error and loading handling
@@ -19,7 +19,7 @@ watchEffect(() => {
   // The effect itself is synchronous
 
   // The async work is moved into a separate promise
-  supabase.fetchArguments_by_conclusion(statementStore.currentStatement?.id as number, props.type)
+  supabase.fetchArguments_by_conclusion(statementStore.currentStatement?.id as number, props.argument_type)
     .then(results => {
       argumentList.value = results;
     })
@@ -32,7 +32,7 @@ watchEffect(() => {
 <template>
   <q-list>
     <q-item class="row justify-center">
-      <CreateArgumentComponent />
+      <CreateArgumentComponent :argument_type="argument_type" />
     </q-item>
     <template v-if="argumentList.length">
       <q-item v-for="argument in argumentList" :key="argument.id">
@@ -40,7 +40,7 @@ watchEffect(() => {
       </q-item>
     </template>
     <template v-else>
-      <div>No {{ type === 'SUPPORTS' ? 'Supporting' : 'Opposing' }} Arguments! Make one?</div>
+      <div>No {{ argument_type === 'SUPPORTS' ? 'Supporting' : 'Opposing' }} Arguments! Make one?</div>
     </template>
   </q-list>
 </template>
