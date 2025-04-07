@@ -111,7 +111,9 @@ watch(
     <!-- Results list -->
     <template v-if="searchResults.length">
       <template v-for="statement in paginatedStatements" :key="statement.id">
-        <StatementComponent :statement="statement" bottomStats />
+        <q-card class="q-mb-sm" bordered>
+          <StatementComponent bottomStats :statement="statement" />
+        </q-card>
       </template>
     </template>
     <template v-else>
