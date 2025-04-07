@@ -48,11 +48,11 @@ const navigateToArgument = () => {
 </script>
 
 <template>
-  <q-card bordered>
+  <q-card bordered class="full-width">
     <q-expansion-item expand-separator expand-icon-toggle dense dense-toggle v-model="expanded"
       @before-show="handleBeforeShow">
       <template #header>
-        <q-item-section side class="col-auto">
+        <q-item-section side class="col-auto items-center" style="width: 38.53px;">
           <div class="text-caption">
             <div class="col">
               <div class="col-auto">
