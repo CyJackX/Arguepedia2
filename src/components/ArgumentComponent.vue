@@ -21,6 +21,8 @@ const argumentStatements = ref<Statement[]>([]);
 const conclusionLabel = computed(() => {
   return props.argument.argument_type === 'SUPPORTS' ? 'supporting' : 'opposing';
 });
+const insetLevel = .67;
+
 const argumentStatementById = (id: number) => {
   return argumentStatements.value.find(s => s.id === id);
 };
@@ -82,9 +84,9 @@ const navigateToArgument = () => {
         <q-list v-if="!isLoading" dense separator>
           <template v-for="statementId in argument.statement_array" :key="statementId">
             <q-separator />
-            <StatementComponent v-if="argumentStatementById(statementId)" sideStats flat
+            <StatementComponent sideStats v-if="argumentStatementById(statementId)" flat
               :statement="argumentStatementById(statementId) as Statement" />
-            <q-item v-else :inset-level=.67>
+            <q-item v-else :inset-level="insetLevel">
               <q-item-section>
                 <q-item-label class="text-weight-bold">Statement ID: {{ statementId }} not found!</q-item-label>
               </q-item-section>
@@ -92,12 +94,12 @@ const navigateToArgument = () => {
 
           </template>
           <q-separator />
-          <q-item :inset-level=.67>
+          <q-item :inset-level="insetLevel">
             <q-item-section>
               <q-item-label>Thereby {{ conclusionLabel }} the conclusion:</q-item-label>
             </q-item-section>
           </q-item>
-          <q-item :inset-level=.67>
+          <q-item :inset-level="insetLevel">
             <q-item-section>
               <q-item-label>{{ conclusion?.statement_text }}</q-item-label>
             </q-item-section>
