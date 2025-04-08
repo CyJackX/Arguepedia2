@@ -6,9 +6,12 @@ import { useSupabase } from '../composables/useSupabase';
 import type { Statement } from '../types/models';
 import StatementComponent from '../components/StatementComponent.vue';
 import CreateStatement from '../components/CreateStatement.vue';
-
+import { useStatementStore } from '../stores/statementStore';
+import { useRouter } from 'vue-router';
 const route = useRoute();
+const router = useRouter();
 const supabase = useSupabase();
+const statementStore = useStatementStore();
 const searchResults = ref<Statement[]>([]);
 const itemsPerPage = 10;
 const currentPage = ref(1);
@@ -93,6 +96,10 @@ watch(
   { immediate: true }
 );
 
+const navigateToStatement = (statement: Statement) => {
+  statementStore.setCurrentStatement(statement);
+  void router.push(`/statement/${statement?.id}`);
+}
 
 </script>
 
@@ -112,7 +119,7 @@ watch(
     <template v-if="searchResults.length">
       <template v-for="statement in paginatedStatements" :key="statement.id">
         <q-card class="q-mb-sm" bordered>
-          <StatementComponent bottomStats :statement="statement" />
+          <StatementComponent clickable @click="navigateToStatement(statement)" bottomStats :statement="statement" />
         </q-card>
       </template>
     </template>
