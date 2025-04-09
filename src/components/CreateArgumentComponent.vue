@@ -7,12 +7,14 @@ import { useAuthStore } from '../stores/authStore';
 import UsernameButton from './UsernameButton.vue';
 import StatementComponent from './StatementComponent.vue';
 import SearchStatementSelect from './SearchStatementSelect.vue';
-
+import { useArgumentCreation } from '../composables/useArgumentCreation';
+import type { StatementType } from 'src/types/models';
+import type { PostgrestError } from '@supabase/supabase-js';
 const props = defineProps<{
-  argument_type: string;
+  argument_type: StatementType;
 }>();
 
-
+const { createNewArgument, errorMessage, friendlyErrorMessage } = useArgumentCreation();
 const statementStore = useStatementStore();
 const authStore = useAuthStore();
 const statementsList = ref<(Statement | null)[]>([null]);
@@ -21,7 +23,7 @@ const conclusionLabel = computed(() => {
 });
 const expanded = ref(false);
 const insetLevel = .67;
-
+const titleRef = ref('');
 const addStatement = () => {
   statementsList.value.push(null);
 }
@@ -35,8 +37,16 @@ const handleStatementSelect = (index: number, statement: Statement) => {
   statementsList.value[index] = statement;
 }
 
-const submitArgument = () => {
-  console.log('submitArgument', statementsList.value);
+const submitArgument = async () => {
+  statementsList.value = statementsList.value.filter(statement => statement !== null);
+  try {
+    console.log('submitArgument', titleRef.value, statementStore.currentStatement?.id, statementsList.value.map(statement => statement?.id), props.argument_type);
+    const newArgument = await createNewArgument(titleRef.value, statementStore.currentStatement?.id as number, statementsList.value.map(statement => statement?.id as number), props.argument_type);
+    console.log('newArgument', newArgument);
+  } catch (error) {
+    console.error('Error submitting argument:', error);
+    errorMessage.value = error as PostgrestError;
+  }
 }
 
 </script>
@@ -61,7 +71,8 @@ const submitArgument = () => {
           </div>
         </q-item-section>
         <q-item-section>
-          <div class="text-body1 text-weight-bold">Create an argument</div>
+          <div class="text-body1 text-weight-bold" v-if="!expanded">Create an argument</div>
+          <q-input dense v-if="expanded" v-model="titleRef" placeholder="Title" />
           <div class="text-caption" v-if="expanded">by
             <UsernameButton :username="authStore.userProfile?.username as string" />
           </div>
@@ -82,7 +93,7 @@ const submitArgument = () => {
             </div>
             <q-separator />
           </template>
-          <q-list separator style="padding-left: 38px;">
+          <q-list dense separator style="padding-left: 38px;">
             <q-item>
               <q-item-section>
                 <q-btn flat align="left" padding="none" @click="addStatement">
@@ -108,7 +119,10 @@ const submitArgument = () => {
             <q-item>
               <q-item-section>
                 <q-item-label class="items-center">
-                  <q-btn flat padding="none"><q-icon name="check" /> Submit Argument</q-btn>
+                  <q-btn flat padding="none" @click="submitArgument"><q-icon name="check" /> Submit Argument</q-btn>
+                </q-item-label>
+                <q-item-label v-if="errorMessage">
+                  {{ friendlyErrorMessage }}
                 </q-item-label>
               </q-item-section>
             </q-item>
