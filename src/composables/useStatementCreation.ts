@@ -24,7 +24,9 @@ export function useStatementCreation() {
 
   const sanitizeQuery = (query: string): string => {
     const sanitized = query.replace(/[^a-zA-Z0-9\s,\-'"()!$#%]/g, '').trim();
-
+    if (sanitized.length === 0) {
+      return '';
+    }
     const capitalized = sanitized.charAt(0).toUpperCase() + sanitized.slice(1);
 
     const endsWithValidPunctuation = /[.!]$/.test(capitalized);
