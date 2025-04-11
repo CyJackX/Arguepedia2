@@ -28,10 +28,11 @@ const searchStatements = async () => {
       'similarity'
     );
     options.value = statements;
-    isMenuOpen.value = true;
+
   } catch (error) {
     console.error(error);
   } finally {
+    isMenuOpen.value = true;
     isLoading.value = false;
   }
 };
@@ -50,6 +51,7 @@ const handleCreateNewStatement = async () => {
 }
 
 
+
 // Emit the selected statement
 const emit = defineEmits<{
   (e: 'select', statement: Statement): void
@@ -62,21 +64,22 @@ const emit = defineEmits<{
     bg-color="white" maxlength="140" counter :error="errorMessage !== null" :error-message="friendlyErrorMessage"
     @error="isMenuOpen = false">
 
-    <q-menu fit v-model="isMenuOpen" no-focus>
-      <q-list>
+    <q-menu fit v-model="isMenuOpen" no-focus v-if="!isLoading">
+      <q-list separator>
         <StatementComponent clickable @click="emit('select', statement)" sideStats v-for="statement in options"
           :key="statement.id" :statement="statement" />
-        <q-item v-if="sanitizeQuery(searchInput).length > 0">
-          <q-item-section>
-            <q-item-label>
-              <q-btn class="full-width" align="left" no-caps flat @click="handleCreateNewStatement">Create new
-                statement:
-                <br>
+        <template v-if="sanitizeQuery(searchInput).length > 0">
+          <q-item style="padding-left: 54px;" clickable @click="handleCreateNewStatement">
+            <q-item-section>
+              <q-item-label class="text-weight-bold">
+                Create new statement:
+              </q-item-label>
+              <q-item-label>
                 {{ sanitizeQuery(searchInput) }}
-              </q-btn>
-            </q-item-label>
-          </q-item-section>
-        </q-item>
+              </q-item-label>
+            </q-item-section>
+          </q-item>
+        </template>
       </q-list>
     </q-menu>
   </q-input>
