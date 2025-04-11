@@ -266,6 +266,5 @@ export function useSupabase() {
     userStatements,
     userArguments,
     userComments,
-    createNewArgument,
   };
 }

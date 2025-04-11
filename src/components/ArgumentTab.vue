@@ -27,12 +27,16 @@ watchEffect(() => {
       console.error('Failed to fetch arguments:', error);
     })
 });
+
+const handleArgumentCreated = (argument: Argument) => {
+  argumentList.value.unshift(argument);
+}
 </script>
 
 <template>
   <q-list>
     <q-item class="row justify-center">
-      <CreateArgumentComponent :argument_type="argument_type" />
+      <CreateArgumentComponent :argument_type="argument_type" @argumentCreated="handleArgumentCreated" />
     </q-item>
     <template v-if="argumentList.length">
       <q-item v-for="argument in argumentList" :key="argument.id">

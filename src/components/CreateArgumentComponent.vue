@@ -2,7 +2,7 @@
 
 import { ref, computed } from 'vue';
 import { useStatementStore } from '../stores/statementStore';
-import type { Statement } from '../types/models';
+import type { Statement, Argument } from '../types/models';
 import { useAuthStore } from '../stores/authStore';
 import UsernameButton from './UsernameButton.vue';
 import StatementComponent from './StatementComponent.vue';
@@ -10,11 +10,15 @@ import SearchStatementSelect from './SearchStatementSelect.vue';
 import { useArgumentCreation } from '../composables/useArgumentCreation';
 import type { StatementType } from 'src/types/models';
 import type { PostgrestError } from '@supabase/supabase-js';
+
+const emit = defineEmits<{
+  (e: 'argumentCreated', argument: Argument): void
+}>();
 const props = defineProps<{
   argument_type: StatementType;
 }>();
 
-const { createNewArgument, errorMessage, friendlyErrorMessage } = useArgumentCreation();
+const { createNewArgument, errorMessage } = useArgumentCreation();
 const statementStore = useStatementStore();
 const authStore = useAuthStore();
 const statementsList = ref<(Statement | null)[]>([null]);
@@ -22,7 +26,7 @@ const conclusionLabel = computed(() => {
   return props.argument_type === 'SUPPORTS' ? 'supporting' : 'opposing';
 });
 const expanded = ref(false);
-const insetLevel = .67;
+// const insetLevel = .67;
 const titleRef = ref('');
 const addStatement = () => {
   statementsList.value.push(null);
@@ -37,12 +41,19 @@ const handleStatementSelect = (index: number, statement: Statement) => {
   statementsList.value[index] = statement;
 }
 
+const resetArgument = () => {
+  titleRef.value = '';
+  statementsList.value = [null];
+}
 const submitArgument = async () => {
   statementsList.value = statementsList.value.filter(statement => statement !== null);
   try {
     console.log('submitArgument', titleRef.value, statementStore.currentStatement?.id, statementsList.value.map(statement => statement?.id), props.argument_type);
     const newArgument = await createNewArgument(titleRef.value, statementStore.currentStatement?.id as number, statementsList.value.map(statement => statement?.id as number), props.argument_type);
     console.log('newArgument', newArgument);
+    resetArgument();
+    expanded.value = false;
+    emit('argumentCreated', newArgument);
   } catch (error) {
     console.error('Error submitting argument:', error);
     errorMessage.value = error as PostgrestError;
@@ -96,7 +107,7 @@ const submitArgument = async () => {
           <q-list dense separator style="padding-left: 38px;">
             <q-item>
               <q-item-section>
-                <q-btn flat align="left" padding="none" @click="addStatement">
+                <q-btn flat padding="none" @click="addStatement">
                   <q-icon name="add" /> Add another statement
                 </q-btn>
               </q-item-section>
@@ -116,15 +127,17 @@ const submitArgument = async () => {
               </q-item-section>
             </q-item>
 
-            <q-item>
+            <q-item class="row justify-between">
               <q-item-section>
-                <q-item-label class="items-center">
-                  <q-btn flat padding="none" @click="submitArgument"><q-icon name="check" /> Submit Argument</q-btn>
-                </q-item-label>
-                <q-item-label v-if="errorMessage">
-                  {{ friendlyErrorMessage }}
-                </q-item-label>
+                <q-btn flat padding="none" @click="submitArgument"><q-icon name="check" /> Submit Argument</q-btn>
               </q-item-section>
+              <q-separator vertical />
+              <q-item-section>
+                <q-btn flat padding="none" @click="resetArgument"><q-icon name="close" /> Reset Argument</q-btn>
+              </q-item-section>
+              <q-item-label v-if="errorMessage">
+                {{ errorMessage.message }}
+              </q-item-label>
             </q-item>
           </q-list>
         </q-list>

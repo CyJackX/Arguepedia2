@@ -3,6 +3,7 @@ import type { Argument, StatementType } from 'src/types/models';
 import { supabase } from 'src/utils/supabase';
 import { ref, computed } from 'vue';
 
+//Not really using these right now.
 const ERROR_MESSAGES = {
   P0001: 'Title cannot be empty.',
   '23505': {
@@ -51,12 +52,16 @@ export function useArgumentCreation() {
       const { data, error } = await supabase
         .from('arguments')
         .insert([{ title, conclusion_id, statement_array, argument_type }])
-        .select('*')
+        .select('*, profiles(username)')
         .single();
 
       if (error) throw error;
-      console.log('Created new argument:', data);
-      return data as Argument;
+      const newArgument = {
+        ...data,
+        username: data.profiles.username,
+      } as Argument;
+      console.log('Created new argument:', newArgument);
+      return newArgument;
     } catch (error) {
       errorMessage.value = error as PostgrestError;
       throw error;
