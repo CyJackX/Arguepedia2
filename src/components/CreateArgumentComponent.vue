@@ -44,6 +44,7 @@ const handleStatementSelect = (index: number, statement: Statement) => {
 const resetArgument = () => {
   titleRef.value = '';
   statementsList.value = [null];
+  errorMessage.value = null;
 }
 const submitArgument = async () => {
   statementsList.value = statementsList.value.filter(statement => statement !== null);
@@ -127,17 +128,18 @@ const submitArgument = async () => {
               </q-item-section>
             </q-item>
 
-            <q-item class="row justify-between">
-              <q-item-section>
-                <q-btn flat padding="none" @click="submitArgument"><q-icon name="check" /> Submit Argument</q-btn>
+            <q-item class="column">
+              <q-item-section class="row inline">
+                <q-btn-group outline flat spread>
+                  <q-btn @click="submitArgument"><q-icon name="check" /> Submit Argument</q-btn>
+                  <q-btn @click="resetArgument"><q-icon name="close" /> Reset Argument</q-btn>
+                </q-btn-group>
               </q-item-section>
-              <q-separator vertical />
               <q-item-section>
-                <q-btn flat padding="none" @click="resetArgument"><q-icon name="close" /> Reset Argument</q-btn>
+                <q-item-label v-if="errorMessage" class="text-negative text-center">
+                  {{ errorMessage.message }}
+                </q-item-label>
               </q-item-section>
-              <q-item-label v-if="errorMessage">
-                {{ errorMessage.message }}
-              </q-item-label>
             </q-item>
           </q-list>
         </q-list>
