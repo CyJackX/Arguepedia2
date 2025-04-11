@@ -17,7 +17,7 @@ defineOptions({
 </script>
 
 <template>
-  <!-- Top stats -->
+
   <q-item v-bind="$attrs">
     <q-item-section side class="text-caption justify-center" v-if="sideStats">
       <q-item-label>
