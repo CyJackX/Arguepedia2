@@ -107,7 +107,7 @@ export function useSupabase() {
     limit: number = 10,
   ): Promise<Argument[]> => {
     console.log(
-      `Fetching arguments for conclusion ID ${conclusion_id} and statement type ${argument_type}`,
+      `Fetching arguments for conclusion ID ${conclusion_id} and statement type ${argument_type} with offset ${offset} and limit ${limit}`,
     );
     try {
       const { data, error } = await supabase
