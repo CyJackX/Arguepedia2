@@ -73,7 +73,8 @@ const emit = defineEmits<{
     bg-color="white" maxlength="140" counter :error="errorMessage !== null" :error-message="friendlyErrorMessage"
     @error="isMenuOpen = false">
 
-    <q-menu fit v-model="isMenuOpen" v-if="menuHasObjects" no-focus :max-width="searchInputWidth">
+    <q-menu transition-show="jump-down" transition-hide="jump-up" fit v-model="isMenuOpen" v-if="menuHasObjects"
+      no-focus :max-width="searchInputWidth">
       <q-list separator>
         <template v-for="statement in options" :key="statement.id">
           <q-item clickable @click="emit('select', statement)">
