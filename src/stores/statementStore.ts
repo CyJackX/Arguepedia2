@@ -1,5 +1,5 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
-import type { Statement, Argument } from '../types/models';
+import type { Statement, Argument, StatementType } from '../types/models';
 import { useSupabase } from 'src/composables/useSupabase';
 const supabase = useSupabase();
 
@@ -24,6 +24,15 @@ export const useStatementStore = defineStore('statement', {
     },
     async fetchArgument(id: number) {
       this.setCurrentArgument(await supabase.fetchArgumentbyId(id));
+    },
+    updateArgumentCount(argument_type: StatementType, count: number) {
+      if (this.currentStatement) {
+        if (argument_type === 'SUPPORTS') {
+          this.currentStatement.supporting_arguments_count += count;
+        } else {
+          this.currentStatement.opposing_arguments_count += count;
+        }
+      }
     },
   },
 });
