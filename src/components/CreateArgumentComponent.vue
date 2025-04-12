@@ -5,11 +5,11 @@ import { useStatementStore } from '../stores/statementStore';
 import type { Statement, Argument } from '../types/models';
 import { useAuthStore } from '../stores/authStore';
 import UsernameButton from './UsernameButton.vue';
-import StatementComponent from './StatementComponent.vue';
 import SearchStatementSelect from './SearchStatementSelect.vue';
 import { useArgumentCreation } from '../composables/useArgumentCreation';
 import type { StatementType } from 'src/types/models';
 import type { PostgrestError } from '@supabase/supabase-js';
+import SideStats from './SideStats.vue'
 
 const emit = defineEmits<{
   (e: 'argumentCreated', argument: Argument): void
@@ -97,12 +97,24 @@ const submitArgument = async () => {
         <q-list dense separator>
           <q-separator />
           <template v-for="(premise, index) in statementsList" :key="index">
-            <div class="row">
-              <StatementComponent class="col-grow" sideStats flat :statement="premise">
-                <SearchStatementSelect @select="handleStatementSelect(index, $event)" />
-              </StatementComponent>
-              <q-btn flat @click="removeStatement(index)"><q-icon name="close" /></q-btn>
-            </div>
+            <q-item>
+              <!-- Side Stats  -->
+              <SideStats side class="text-caption justify-center"
+                :supporting_arguments_count="premise?.supporting_arguments_count || 0"
+                :opposing_arguments_count="premise?.opposing_arguments_count || 0"
+                :comments_count="premise?.comments_count || 0" />
+
+              <!-- Statement Text Or Input Field-->
+              <q-item-section>
+                <q-item-label v-if="premise != null">{{ premise?.statement_text }}</q-item-label>
+                <SearchStatementSelect v-else @select="handleStatementSelect(index, $event)" />
+              </q-item-section>
+
+              <!-- Remove Button -->
+              <q-item-section side>
+                <q-btn flat @click="removeStatement(index)"><q-icon name="close" /></q-btn>
+              </q-item-section>
+            </q-item>
             <q-separator />
           </template>
           <q-list dense separator style="padding-left: 38px;">
