@@ -126,11 +126,12 @@ const navigateToStatement = (statement: Statement) => {
     <template v-else>
       <div>No results found</div>
     </template>
+    <!-- Pagination -->
+    <q-pagination v-if="searchResults.length" class="flex justify-center q-mt-lg" v-model="currentPage"
+      :max="totalPages" :max-pages="6" boundary-numbers direction-links color="primary" active-color="primary"
+      @update:model-value="loadSearchResults" />
   </q-list>
 
-  <!-- Pagination -->
-  <div v-if="searchResults.length" class="flex justify-center q-mt-lg">
-    <q-pagination v-model="currentPage" :max="totalPages" :max-pages="6" boundary-numbers direction-links
-      color="primary" active-color="primary" @update:model-value="loadSearchResults" />
-  </div>
+
+
 </template>
