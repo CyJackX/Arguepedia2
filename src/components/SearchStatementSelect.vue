@@ -89,7 +89,7 @@ const emit = defineEmits<{
             </q-item-section>
           </q-item>
         </template>
-        <template v-if="sanitizeQuery(searchInput).length > 0">
+        <template v-if="sanitizeQuery(searchInput).split(' ').length > 1">
           <q-item style="padding-left: 54px;" clickable @click="handleCreateNewStatement">
             <q-item-section>
               <q-item-label class="text-weight-bold">
