@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Statement } from '../types/models';
 import UsernameButton from './UsernameButton.vue';
+import SideStats from './SideStats.vue';
 
 const props = defineProps<{
   statement: Statement | null;
@@ -19,17 +20,10 @@ defineOptions({
 <template>
 
   <q-item v-bind="$attrs">
-    <q-item-section side class="text-caption justify-center" v-if="sideStats">
-      <q-item-label>
-        <q-icon color="green" name="check" /> {{ props.statement?.supporting_arguments_count || 0 }}
-      </q-item-label>
-      <q-item-label>
-        <q-icon color="red" name="close" /> {{ props.statement?.opposing_arguments_count || 0 }}
-      </q-item-label>
-      <q-item-label>
-        <q-icon name="comment" /> {{ props.statement?.comments_count || 0 }}
-      </q-item-label>
-    </q-item-section>
+    <SideStats side class="text-caption justify-center" v-if="sideStats"
+      :supporting_arguments_count="statement?.supporting_arguments_count || 0"
+      :opposing_arguments_count="statement?.opposing_arguments_count || 0"
+      :comments_count="statement?.comments_count || 0" />
 
     <!-- Statement text -->
     <q-item-section>
@@ -47,9 +41,10 @@ defineOptions({
             props.statement?.comments_count || 0
           }}
           <br>Created by
-          <UsernameButton :username="props.statement?.username as string" /> on {{ new Date(props.statement?.created_at
-            ||
-            '').toLocaleString() }}
+          <UsernameButton :username="props.statement?.username as string" /> on {{ new
+            Date(props.statement?.created_at
+              ||
+              '').toLocaleString() }}
         </q-item-label>
       </template>
       <slot v-else></slot>
