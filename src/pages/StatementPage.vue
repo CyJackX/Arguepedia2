@@ -39,8 +39,8 @@ watch(statementId, async (newId) => {
         <q-route-tab name="opposing" :to="{ name: 'opposing', params: { id: statementStore.currentStatement?.id } }"
           icon="close"
           :label="`Opposing Arguments (${statementStore.currentStatement?.opposing_arguments_count || 0})`" />
-        <q-route-tab name="comments" :to="{ name: 'comments', params: { id: statementStore.currentStatement?.id } }"
-          icon="comment" :label="`Comments (${statementStore.currentStatement?.comments_count || 0})`" />
+        <!-- <q-route-tab name="comments" :to="{ name: 'comments', params: { id: statementStore.currentStatement?.id } }"
+          icon="comment" :label="`Comments (${statementStore.currentStatement?.comments_count || 0})`" /> -->
         <q-route-tab name="supporting" :to="{ name: 'supporting', params: { id: statementStore.currentStatement?.id } }"
           icon="check"
           :label="`Supporting Arguments (${statementStore.currentStatement?.supporting_arguments_count || 0})`" />
@@ -49,7 +49,7 @@ watch(statementId, async (newId) => {
       <q-separator />
 
       <!-- Router-view renders the active tab content -->
-      <router-view />
+      <router-view :key="$route.name?.toString() ?? $route.path" />
     </div>
   </div>
 </template>

@@ -19,8 +19,8 @@ defineOptions({
     <q-item-label>
       <q-icon color="red" name="close" /> {{ props.opposing_arguments_count || 0 }}
     </q-item-label>
-    <q-item-label>
+    <!-- <q-item-label>
       <q-icon name="comment" /> {{ props.comments_count || 0 }}
-    </q-item-label>
+    </q-item-label> -->
   </q-item-section>
 </template>
