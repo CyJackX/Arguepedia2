@@ -36,6 +36,7 @@ export default defineRouter(function () {
 
   // Add navigation guard
   Router.beforeEach((to) => {
+    console.log('Navigation guard - Route:', to.path);
     const authStore = useAuthStore();
     if (!to.meta.requiresAuth) {
       console.log('No auth required, skipping guard');
