@@ -17,6 +17,7 @@ const itemsPerPage = 10;
 const currentPage = ref(1);
 const totalResults = ref(0);
 const totalPages = computed(() => Math.ceil(totalResults.value / itemsPerPage));
+const isLoading = ref(false);
 
 const { searchTerm, searchTrigger } = inject('search') as {
   searchTerm: Ref<string>,
@@ -52,6 +53,7 @@ const loadSearchResults = async (page: number = currentPage.value) => {
   }
 
   try {
+    isLoading.value = true;
     const offset = (page - 1) * itemsPerPage;
     const [statements, total] = await supabase.searchStatements(
       searchTerm.value,
@@ -67,6 +69,8 @@ const loadSearchResults = async (page: number = currentPage.value) => {
   } catch (error) {
     console.error('Error loading statements:', error);
     searchResults.value = [];
+  } finally {
+    isLoading.value = false;
   }
 };
 const resetSearch = () => {
@@ -116,7 +120,10 @@ const navigateToStatement = (statement: Statement) => {
     </q-item>
 
     <!-- Results list -->
-    <template v-if="searchResults.length">
+    <template v-if="isLoading">
+      <q-skeleton height="100px" class="q-mb-sm" />
+    </template>
+    <template v-else-if="searchResults.length">
       <template v-for="statement in paginatedStatements" :key="statement.id">
         <q-card class="q-mb-sm" bordered>
           <StatementComponent clickable @click="navigateToStatement(statement)" bottomStats :statement="statement" />
