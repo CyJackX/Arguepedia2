@@ -6,15 +6,41 @@
       place for people to come together and argue about things they care about.
     </p>
   </div>
-  <div class="text-center q-pa-md">
-    <h2 class="text-h3 q-mb-md">Recent Activity</h2>
-    <q-list>
-      <q-item>
-        <q-item-section>
-          <q-item-label>xxx</q-item-label>
-        </q-item-section>
-      </q-item>
-    </q-list>
-  </div>
+  <h2 class="text-h4 q-mb-md text-center">Recent Arguments</h2>
+  <q-list>
+    <ArgumentComponent startExpanded class="q-mb-md" v-for="argument in recentArguments" :key="argument.id"
+      :argument="argument" />
+  </q-list>
+
 
 </template>
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import { supabase } from '../utils/supabase';
+import ArgumentComponent from '../components/ArgumentComponent.vue';
+import type { Argument } from '../types/models';
+
+
+const recentArguments = ref<Argument[]>([]);
+
+const loadRecentArguments = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('argument_view')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    if (error) throw error;
+    recentArguments.value = data;
+  } catch (error) {
+    console.error('Error loading recent arguments:', error);
+  }
+};
+
+onMounted(() => {
+  void loadRecentArguments();
+});
+
+</script>

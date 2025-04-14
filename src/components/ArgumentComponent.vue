@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Argument, Statement } from '../types/models';
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useSupabase } from '../composables/useSupabase';
 import UsernameButton from './UsernameButton.vue';
 import StatementComponent from './StatementComponent.vue';
@@ -11,10 +11,11 @@ const router = useRouter();
 const statementStore = useStatementStore();
 const props = defineProps<{
   argument: Argument;
+  startExpanded?: boolean;
 }>();
 
 const conclusion = ref<Statement | null>(null);
-const expanded = ref(false);
+const expanded = ref(props.startExpanded ?? false);
 const isLoading = ref(false);
 const { fetchStatement, fetchConnectedStatements } = useSupabase();
 const argumentStatements = ref<Statement[]>([]);
@@ -47,6 +48,11 @@ const navigateToArgument = () => {
   void router.push(`/argument/${props.argument.id}`);
 };
 
+onMounted(async () => {
+  if (props.startExpanded) {
+    await handleBeforeShow();
+  }
+});
 </script>
 
 <template>
