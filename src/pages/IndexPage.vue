@@ -7,10 +7,15 @@
     </p>
   </div>
   <h2 class="text-h4 q-mb-md text-center">Recent Arguments</h2>
+
   <q-list>
-    <ArgumentComponent startExpanded class="q-mb-md" v-for="argument in recentArguments" :key="argument.id"
+    <q-inner-loading v-if="isLoading">
+      <q-spinner-dots color="primary" size="40px" />
+    </q-inner-loading>
+    <ArgumentComponent v-else startExpanded class="q-mb-md" v-for="argument in recentArguments" :key="argument.id"
       :argument="argument" />
   </q-list>
+
 
 
 </template>
@@ -23,6 +28,7 @@ import type { Argument } from '../types/models';
 
 
 const recentArguments = ref<Argument[]>([]);
+const isLoading = ref(true);
 
 const loadRecentArguments = async () => {
   try {
@@ -36,6 +42,8 @@ const loadRecentArguments = async () => {
     recentArguments.value = data;
   } catch (error) {
     console.error('Error loading recent arguments:', error);
+  } finally {
+    isLoading.value = false;
   }
 };
 
