@@ -13,7 +13,8 @@
     "dev": "quasar dev",
     "build": "quasar build",
     "postinstall": "quasar prepare",
-    "types:supabase": "npx supabase gen types typescript --project-id giuhdvcbdegunhgjvdul > src/types/supabase.ts"
+    "types:supabase": "npx supabase gen types typescript --project-id giuhdvcbdegunhgjvdul > src/types/supabase.ts",
+    "deploy": "vercel"
   },
   "dependencies": {
     "@quasar/extras": "^1.16.4",
