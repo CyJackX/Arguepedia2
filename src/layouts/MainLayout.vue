@@ -96,13 +96,9 @@ provide('search', {
       </q-page>
     </q-page-container>
 
-    <q-footer class="bg-grey-8 text-white">
-      <q-toolbar>
-        <q-toolbar-title align="center">
-          <div>Copyright Andy Zou 2025</div>
-        </q-toolbar-title>
-      </q-toolbar>
-    </q-footer>
+    <!-- <q-footer reveal class="bg-grey-8 text-white text-caption text-center">
+      Copyright Andy Zou 2025
+    </q-footer> -->
 
   </q-layout>
 </template>
