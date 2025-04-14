@@ -2,8 +2,7 @@
   <div class="text-center q-pa-md">
     <h1 class="text-h3 q-mb-md"></h1>
     <p class="text-body1 q-mx-auto" style="max-width: 600px">
-      Arguepedia is a platform for creating and sharing arguments. It is a
-      place for people to come together and argue about things they care about.
+      Arguepedia is a platform for creating and sharing arguments.
     </p>
   </div>
   <h2 class="text-h4 q-mb-md text-center">Recent Arguments</h2>
