@@ -76,21 +76,21 @@ onMounted(async () => {
           </div>
         </q-item-section>
         <q-item-section>
-          <div @click="navigateToArgument" class="text-body1 text-weight-bold">{{
-            props.argument.title }}</div>
-          <div class="text-caption">by
+          <q-item-label @click="navigateToArgument">{{
+            props.argument.title }}</q-item-label>
+          <q-item-label caption>by
             <UsernameButton :username="props.argument.username" />
-          </div>
+          </q-item-label>
 
         </q-item-section>
-
       </template>
 
       <template #default>
         <q-list v-if="!isLoading" dense separator>
           <template v-for="statementId in argument.statement_array" :key="statementId">
             <q-separator />
-            <StatementComponent sideStats v-if="argumentStatementById(statementId)" flat
+            <StatementComponent clickable :to="`/statement/${statementId}`" sideStats
+              v-if="argumentStatementById(statementId)" flat
               :statement="argumentStatementById(statementId) as Statement" />
             <q-item v-else :inset-level="insetLevel">
               <q-item-section>
