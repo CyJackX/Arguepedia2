@@ -6,14 +6,16 @@
     </p>
   </div>
   <h2 class="text-h4 q-mb-md text-center">Recent Arguments</h2>
-
-  <q-list>
-    <q-inner-loading v-if="isLoading">
-      <q-spinner-dots color="primary" size="40px" />
-    </q-inner-loading>
-    <ArgumentComponent v-else startExpanded class="q-mb-md" v-for="argument in recentArguments" :key="argument.id"
+  <q-card v-if="isLoading">
+    <q-card-section align="center">
+      <q-spinner-dots class="q-mx-auto text-center text-h4" />
+    </q-card-section>
+  </q-card>
+  <q-list v-else>
+    <ArgumentComponent startExpanded class="q-mb-md" v-for="argument in recentArguments" :key="argument.id"
       :argument="argument" />
   </q-list>
+
 
 
 
