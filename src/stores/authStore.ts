@@ -1,7 +1,7 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
 import { ref } from 'vue';
 import { supabase } from 'src/utils/supabase';
-import type { User } from '@supabase/supabase-js';
+import type { User, Session } from '@supabase/supabase-js';
 import type { Profile } from '../types/models';
 import { useRouter } from 'vue-router';
 
@@ -147,7 +147,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  function onAuthStateChange(callback: (event: string, session: unknown) => void) {
+  function onAuthStateChange(callback: (event: string, session: Session | null) => void) {
     return supabase.auth.onAuthStateChange((event, session) => {
       user.value = session?.user ?? null;
       if (user.value) {

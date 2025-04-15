@@ -1,30 +1,54 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onUnmounted } from 'vue';
 import { useAuthStore } from '../stores/authStore';
+import { useRouter } from 'vue-router';
+import type { Session } from '@supabase/supabase-js';
 
 const email = ref('');
 const password = ref('');
 const otpSent = ref(false);
 const authStore = useAuthStore();
+const router = useRouter();
 
 // Expose loading and error from the store
 const loading = computed(() => authStore.loading);
 const error = computed(() => authStore.error);
 
+// Set up auth state change listener
+const { data: { subscription } } = authStore.onAuthStateChange((event, session: Session | null) => {
+  if (event === 'SIGNED_IN' && session?.user) {
+    void router.push('/');
+  }
+});
+
+// Clean up listener when component is unmounted
+onUnmounted(() => {
+  subscription.unsubscribe();
+});
+
 const handleGoogleSignIn = () => {
   void authStore.signInWithGoogle();
 };
 
-const handleEmailSignIn = () => {
+const handleEmailSignIn = async () => {
   if (!email.value || !password.value) return;
-  void authStore.signInWithPassword(email.value, password.value);
+  try {
+    await authStore.signInWithPassword(email.value, password.value);
+  } catch (e) {
+    // Error is already handled by the store
+    console.error('Sign in failed:', e);
+  }
 };
 
-const handleOTPSignIn = () => {
+const handleOTPSignIn = async () => {
   if (!email.value) return;
-  void authStore.signInWithOTP(email.value).then(() => {
+  try {
+    await authStore.signInWithOTP(email.value);
     otpSent.value = true;
-  });
+  } catch (e) {
+    // Error is already handled by the store
+    console.error('OTP sign in failed:', e);
+  }
 };
 </script>
 
