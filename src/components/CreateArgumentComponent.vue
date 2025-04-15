@@ -64,7 +64,16 @@ const submitArgument = async () => {
 </script>
 
 <template>
-  <q-card bordered class="full-width">
+  <q-card v-if="!authStore.userProfile?.username" bordered class="full-width">
+    <q-card-section>
+      <q-item clickable to="/auth">
+        <q-item-section>
+          <q-item-label class="text-center text-h6">Login to create an argument</q-item-label>
+        </q-item-section>
+      </q-item>
+    </q-card-section>
+  </q-card>
+  <q-card v-else bordered class="full-width">
     <q-expansion-item expand-separator expand-icon-toggle dense dense-toggle v-model="expanded">
       <template #header>
         <q-item-section side class="col-auto" style="width: 38.53px;">
