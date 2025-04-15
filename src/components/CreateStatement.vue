@@ -4,7 +4,7 @@ import type { Ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
 import { useStatementCreation } from '../composables/useStatementCreation';
-
+import { Notify } from 'quasar';
 const { searchTerm } = inject('search') as {
   searchTerm: Ref<string>,
   searchTrigger: Ref<number>
@@ -17,6 +17,12 @@ const { sanitizeQuery, createNewStatement, errorMessage, friendlyErrorMessage } 
 const handleCreateNewStatement = async () => {
   const new_statement = await createNewStatement(searchTerm.value);
   if (new_statement) {
+    Notify.create({
+      type: 'positive',
+      message: 'Statement created successfully!',
+      position: 'top',
+      timeout: 2000
+    });
     void router.push(`/statement/${new_statement.id}`);
   }
 }

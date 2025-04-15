@@ -10,7 +10,7 @@ import { useArgumentCreation } from '../composables/useArgumentCreation';
 import type { StatementType } from 'src/types/models';
 import type { PostgrestError } from '@supabase/supabase-js';
 import SideStats from './SideStats.vue'
-
+import { Notify } from 'quasar';
 const emit = defineEmits<{
   (e: 'argumentCreated', argument: Argument): void
 }>();
@@ -55,6 +55,12 @@ const submitArgument = async () => {
     resetArgument();
     expanded.value = false;
     emit('argumentCreated', newArgument);
+    Notify.create({
+      type: 'positive',
+      message: 'Argument created successfully!',
+      position: 'top',
+      timeout: 2000
+    });
   } catch (error) {
     console.error('Error submitting argument:', error);
     errorMessage.value = error as PostgrestError;

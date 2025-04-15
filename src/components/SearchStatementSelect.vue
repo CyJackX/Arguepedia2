@@ -5,7 +5,7 @@ import type { Statement } from '../types/models';
 import SideStats from './SideStats.vue';
 import { useStatementCreation } from '../composables/useStatementCreation';
 import { useSupabase } from '../composables/useSupabase';
-import { QInput } from 'quasar';
+import { QInput, Notify } from 'quasar';
 
 const supabase = useSupabase();
 const { createNewStatement, sanitizeQuery, errorMessage, friendlyErrorMessage } = useStatementCreation();
@@ -50,6 +50,12 @@ const handleCreateNewStatement = async () => {
   try {
     const newStatement = await createNewStatement(searchInput.value);
     if (newStatement) {
+      Notify.create({
+        type: 'positive',
+        message: 'Statement created successfully!',
+        position: 'top',
+        timeout: 2000
+      });
       emit('select', newStatement);
     }
   } catch (error) {
