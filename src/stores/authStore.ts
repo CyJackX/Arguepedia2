@@ -3,14 +3,31 @@ import { ref } from 'vue';
 import { supabase } from 'src/utils/supabase';
 import type { User, Session } from '@supabase/supabase-js';
 import type { Profile } from '../types/models';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 
 export const useAuthStore = defineStore('auth', () => {
   const router = useRouter();
+  const route = useRoute();
   const user = ref<User | null>(null);
   const userProfile = ref<Profile | null>(null);
   const loading = ref(false);
   const error = ref<string | null>(null);
+
+  // Store the current path before redirecting to auth
+  function storeRedirectPath() {
+    const currentPath = route.fullPath;
+    // Don't store auth-related paths
+    if (!currentPath.startsWith('/auth')) {
+      sessionStorage.setItem('authRedirectPath', currentPath);
+    }
+  }
+
+  // Get the stored redirect path
+  function getRedirectPath() {
+    const path = sessionStorage.getItem('authRedirectPath');
+    sessionStorage.removeItem('authRedirectPath'); // Clear after retrieving
+    return path || '/';
+  }
 
   async function getUser() {
     try {
@@ -58,6 +75,7 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true;
     error.value = null;
     try {
+      storeRedirectPath();
       const { error: authError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -77,6 +95,7 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true;
     error.value = null;
     try {
+      storeRedirectPath();
       console.log('Signing in with password:', email);
       const { error: authError } = await supabase.auth.signInWithPassword({
         email,
@@ -97,6 +116,7 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true;
     error.value = null;
     try {
+      storeRedirectPath();
       const { error: authError } = await supabase.auth.signInWithOtp({
         email,
         options: {
@@ -173,6 +193,7 @@ export const useAuthStore = defineStore('auth', () => {
     signOut,
     updatePassword,
     onAuthStateChange,
+    getRedirectPath,
   };
 });
 

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onUnmounted } from 'vue';
 import { useAuthStore } from '../stores/authStore';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
+import { Notify } from 'quasar';
 import type { Session } from '@supabase/supabase-js';
 
 const email = ref('');
@@ -9,6 +10,7 @@ const password = ref('');
 const otpSent = ref(false);
 const authStore = useAuthStore();
 const router = useRouter();
+const route = useRoute();
 
 // Expose loading and error from the store
 const loading = computed(() => authStore.loading);
@@ -17,7 +19,16 @@ const error = computed(() => authStore.error);
 // Set up auth state change listener
 const { data: { subscription } } = authStore.onAuthStateChange((event, session: Session | null) => {
   if (event === 'SIGNED_IN' && session?.user) {
-    void router.push('/');
+    Notify.create({
+      type: 'positive',
+      message: 'Successfully signed in!',
+      position: 'top',
+      timeout: 2000
+    });
+
+    // Get the redirect path from query params, stored path, or default to home
+    const redirectPath = route.query.redirect?.toString() || authStore.getRedirectPath();
+    void router.push(redirectPath);
   }
 });
 
