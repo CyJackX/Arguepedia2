@@ -44,8 +44,13 @@ export function useSupabase() {
       return [[], 0];
     }
 
+    // Handle case where no results are found
+    if (!data || !data[0] || !data[0].data) {
+      return [[], 0];
+    }
+
     const { data: statements, meta } = data[0];
-    return [statements as Statement[], meta.total_count];
+    return [statements as Statement[], meta?.total_count || 0];
   };
 
   /**

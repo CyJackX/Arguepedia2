@@ -19,7 +19,7 @@ const totalResults = ref(0);
 const totalPages = computed(() => Math.ceil(totalResults.value / itemsPerPage));
 const isLoading = ref(false);
 
-const { searchTerm, searchTrigger } = inject('search') as {
+const { searchTerm } = inject('search') as {
   searchTerm: Ref<string>,
   searchTrigger: Ref<number>
 };
@@ -53,15 +53,17 @@ const loadSearchResults = async (page: number = currentPage.value) => {
   }
 
   try {
+    console.log('Starting search, setting isLoading to true');
     isLoading.value = true;
     const offset = (page - 1) * itemsPerPage;
     const [statements, total] = await supabase.searchStatements(
       searchTerm.value,
       offset,
       itemsPerPage,
-      sortMethod.value.value // Pass just the value string
+      sortMethod.value.value
     );
 
+    console.log('Search completed, results:', { statements, total });
     // Cache the results
     pageCache.value.set(page, statements);
     searchResults.value = statements;
@@ -70,6 +72,7 @@ const loadSearchResults = async (page: number = currentPage.value) => {
     console.error('Error loading statements:', error);
     searchResults.value = [];
   } finally {
+    console.log('Search finished, setting isLoading to false');
     isLoading.value = false;
   }
 };
@@ -85,13 +88,16 @@ const newSearch = async () => {
   await loadSearchResults();
 }
 
-// Watch for both route changes and search triggers
+// Watch for route changes only
 watch(
-  [() => route.query.q, searchTrigger],
-  async ([newQuery]) => {
+  () => route.query.q,
+  async (newQuery) => {
+    console.log('🔍 SearchResults - watcher triggered', { newQuery });
     if (typeof newQuery === 'string') {
       try {
+        console.log('🔍 SearchResults - starting newSearch');
         await newSearch();
+        console.log('🔍 SearchResults - newSearch completed');
       } catch (error) {
         console.error('Search error:', error);
       }
@@ -123,7 +129,7 @@ const navigateToStatement = (statement: Statement) => {
     <template v-if="isLoading">
       <q-skeleton height="100px" class="q-mb-sm" />
     </template>
-    <template v-else-if="searchResults.length">
+    <template v-else-if="totalResults > 0">
       <template v-for="statement in paginatedStatements" :key="statement.id">
         <q-card class="q-mb-sm" bordered>
           <StatementComponent clickable @click="navigateToStatement(statement)" bottomStats :statement="statement" />
@@ -134,8 +140,8 @@ const navigateToStatement = (statement: Statement) => {
       <div>No results found</div>
     </template>
     <!-- Pagination -->
-    <q-pagination v-if="searchResults.length" class="flex justify-center q-mt-lg" v-model="currentPage"
-      :max="totalPages" :max-pages="6" boundary-numbers direction-links color="primary" active-color="primary"
+    <q-pagination v-if="totalResults > 0" class="flex justify-center q-mt-lg" v-model="currentPage" :max="totalPages"
+      :max-pages="6" boundary-numbers direction-links color="primary" active-color="primary"
       @update:model-value="loadSearchResults" />
   </q-list>
 

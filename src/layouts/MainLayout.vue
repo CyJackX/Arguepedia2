@@ -2,7 +2,6 @@
 import { ref, onMounted, provide, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from 'src/stores/authStore';
-import { debounce } from 'lodash';
 
 const router = useRouter();
 const route = useRoute();
@@ -26,23 +25,20 @@ onMounted(async () => {
 });
 
 const handleSearch = async () => {
-
+  console.log('🔍 MainLayout - handleSearch triggered');
   if (searchTerm.value.trim()) {
-    console.log('handleSearch', searchTerm.value);
+    console.log('🔍 MainLayout - navigating to search with term:', searchTerm.value);
     try {
       await router.push({
         path: '/search',
         query: { q: searchTerm.value }
       });
-      searchTrigger.value++;
+      console.log('🔍 MainLayout - route pushed');
     } catch (error) {
       console.error('Navigation error:', error);
-      // Handle navigation failure if needed
     }
   }
 };
-
-const debouncedSearch = debounce(handleSearch, 500);
 
 watch(
   () => route.query.q,
@@ -81,8 +77,8 @@ provide('search', {
       <q-toolbar>
         <q-space />
         <q-input v-model="searchTerm" type="search" placeholder="Search statements or create your own..."
-          class="q-px-md q-ma-md" @update:model-value="debouncedSearch" @keyup.enter="handleSearch" dense outlined
-          bg-color="white" maxlength="140" counter style="width:600px ;max-width: 80%">
+          class="q-px-md q-ma-md" @keyup.enter="handleSearch" dense outlined bg-color="white" maxlength="140" counter
+          style="width:600px ;max-width: 80%">
         </q-input>
         <q-space />
       </q-toolbar>
