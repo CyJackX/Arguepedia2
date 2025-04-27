@@ -31,6 +31,12 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function getUser() {
     try {
+      // Skip auth check during SSR
+      if (import.meta.env.SSR) {
+        console.log('Skipping auth check during SSR');
+        return null;
+      }
+
       console.log('Fetching user');
       const {
         data: { user: currentUser },
@@ -49,6 +55,9 @@ export const useAuthStore = defineStore('auth', () => {
       return user.value;
     } catch (error) {
       console.error('Error fetching user:', error);
+      // Don't break SSR on auth errors
+      user.value = null;
+      userProfile.value = null;
       return null;
     }
   }
