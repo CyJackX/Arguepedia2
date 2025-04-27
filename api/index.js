@@ -1,1 +1,3 @@
-export * from '../dist/ssr/index.js';
+import { handler } from '../dist/ssr/index.js';
+
+export default handler;
