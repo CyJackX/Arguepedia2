@@ -1,26 +1,22 @@
 {
+  "version": 2,
+  "builds": [
+    {
+      "src": "dist/ssr/index.js",
+      "use": "@vercel/node"
+    }
+  ],
   "routes": [
-    { "handle": "filesystem" },
     {
       "src": "/assets/(.*)",
       "headers": {
         "cache-control": "public, max-age=31536000, immutable"
       },
-      "continue": true
+      "dest": "/dist/ssr/assets/$1"
     },
     {
-      "src": "/(.*)\\.(js|css|json|ico|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)$",
-      "headers": {
-        "cache-control": "public, max-age=31536000, immutable"
-      },
-      "continue": true
-    },
-    {
-      "src": "/.*",
-      "headers": {
-        "cache-control": "public, max-age=0, must-revalidate"
-      },
-      "dest": "/"
+      "src": "/(.*)",
+      "dest": "/dist/ssr/index.js"
     }
   ]
 }
