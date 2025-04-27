@@ -55,13 +55,14 @@ export const create = defineSsrCreate((/* { ... } */) => {
  *
  * Can be async: defineSsrListen(async ({ app, devHttpsApp, port }) => { ... })
  */
+import serverless from 'serverless-http';
+
 export const listen = defineSsrListen(({ app, devHttpsApp, port }) => {
-  const server = devHttpsApp || app;
-  return server.listen(port, () => {
-    if (process.env.PROD) {
-      console.log('Server listening at port ' + port);
-    }
-  });
+  if (process.env.DEV) {
+    return (devHttpsApp || app).listen(port);
+  }
+  // Vercel uses this
+  return { handler: serverless(app) };
 });
 
 /**
