@@ -158,32 +158,32 @@ export function useSupabase() {
     }
   };
 
-  /**
-   * Updates or creates a vote for a statement relationship
-   * @param relationshipId - The ID of the statement relationship to vote on
-   * @param vote - True for upvote, false for downvote
-   * @returns True for upvote, false for downvote, or null for deleted vote from RPC.
-   */
-  const updateVote = async (relationshipId: number, vote: boolean): Promise<boolean | null> => {
-    try {
-      const { data, error } = await supabase.rpc('toggle_relationship_vote', {
-        p_relationship_id: relationshipId,
-        p_vote_value: vote,
-      });
+  // /**
+  //  * Updates or creates a vote for a statement relationship
+  //  * @param relationshipId - The ID of the statement relationship to vote on
+  //  * @param vote - True for upvote, false for downvote
+  //  * @returns True for upvote, false for downvote, or null for deleted vote from RPC.
+  //  */
+  // const updateVote = async (relationshipId: number, vote: boolean): Promise<boolean | null> => {
+  //   try {
+  //     const { data, error } = await supabase.rpc('toggle_relationship_vote', {
+  //       p_relationship_id: relationshipId,
+  //       p_vote_value: vote,
+  //     });
 
-      if (error) throw error;
-      console.log(
-        `User ${authStore.user?.id}'s vote on relationship #${relationshipId} has been updated to:`,
-        data,
-      );
+  //     if (error) throw error;
+  //     console.log(
+  //       `User ${authStore.user?.id}'s vote on relationship #${relationshipId} has been updated to:`,
+  //       data,
+  //     );
 
-      // Returns true for upvote, false for downvote, or null for deleted vote from RPC.
-      return data;
-    } catch (error) {
-      console.error('Error updating vote:', error);
-      return null;
-    }
-  };
+  //     // Returns true for upvote, false for downvote, or null for deleted vote from RPC.
+  //     return data;
+  //   } catch (error) {
+  //     console.error('Error updating vote:', error);
+  //     return null;
+  //   }
+  // };
 
   /**
    * Fetches a user's profile by username
@@ -263,7 +263,7 @@ export function useSupabase() {
     fetchArgumentbyId,
     fetchArguments_by_conclusion,
     fetchConnectedStatements,
-    updateVote,
+    // updateVote,
     fetchUserProfile,
     fetchUserActivity,
     auth: authStore,
