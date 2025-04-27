@@ -1,15 +1,8 @@
 {
   "routes": [
     {
-      "src": "/assets/(.*)",
-      "headers": {
-        "cache-control": "public, max-age=31536000, immutable"
-      },
-      "dest": "/dist/ssr/assets/$1"
-    },
-    {
       "src": "/(.*)",
-      "dest": "/dist/ssr/index.js"
+      "dest": "dist/ssr/index.js"
     }
   ]
 }
