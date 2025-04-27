@@ -187,7 +187,9 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   // Initialize auth state
+  console.log('Initializing auth state');
   void getUser();
+  console.log('Auth state initialized');
 
   return {
     user,

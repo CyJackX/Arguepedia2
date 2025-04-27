@@ -11,6 +11,7 @@
     "format": "prettier --write \"**/*.{js,ts,vue,scss,html,md,json}\" --ignore-path .gitignore",
     "test": "echo \"No test specified\" && exit 0",
     "dev": "quasar dev",
+    "vercel-dev": "vercel dev",
     "build": "quasar build -m ssr",
     "postinstall": "quasar prepare",
     "types:supabase": "npx supabase gen types typescript --project-id giuhdvcbdegunhgjvdul > src/types/supabase.ts",
