@@ -1,68 +1,64 @@
-import { type Request, type Response } from 'express';
 import { type RenderError } from '#q-app';
 import { defineSsrMiddleware } from '#q-app/wrappers';
+import type { Request, Response } from 'express';
 
 // This middleware should execute as last one
 // since it captures everything and tries to
 // render the page with Vue
 
-export default defineSsrMiddleware(({ app, resolve, render, serve }) => {
+export default defineSsrMiddleware(({ app, resolve, render }) => {
   // we capture any other Express route and hand it
   // over to Vue and Vue Router to render our page
-  app.get(resolve.urlPath('*'), (req: Request, res: Response) => {
-    console.log('[Render] Starting render for:', req.url);
+  app.get(resolve.urlPath('*'), async (req: Request, res: Response) => {
+    const startTime = Date.now();
+    console.log(`[SSR] Starting render for ${req.url}`);
+    console.log('[Render] Request headers:', req.headers);
     res.setHeader('Content-Type', 'text/html');
 
-    render(/* the ssrContext: */ { req, res })
-      .then((html) => {
-        console.log('[Render] Successfully rendered:', req.url);
-        // now let's send the rendered html to the client
-        res.send(html);
-      })
-      .catch((err: RenderError) => {
-        console.error('[Render] Error rendering:', req.url, err);
-
-        // oops, we had an error while rendering the page
-
-        // we were told to redirect to another URL
-        if (err.url) {
-          console.log('[Render] Redirecting to:', err.url);
-          if (err.code) {
-            res.redirect(err.code, err.url);
-          } else {
-            res.redirect(err.url);
-          }
-        } else if (err.code === 404) {
-          console.log('[Render] 404 Not Found:', req.url);
-          // hmm, Vue Router could not find the requested route
-
-          // Should reach here only if no "catch-all" route
-          // is defined in /src/routes
-          res.status(404).send('404 | Page Not Found');
-        } else if (process.env.DEV) {
-          console.error('[Render] Dev mode error:', err);
-          // well, we treat any other code as error;
-          // if we're in dev mode, then we can use Quasar CLI
-          // to display a nice error page that contains the stack
-          // and other useful information
-
-          // serve.error is available on dev only
-          serve.error({ err, req, res });
-        } else {
-          console.error('[Render] Production error:', err);
-          // we're in production, so we should have another method
-          // to display something to the client when we encounter an error
-          // (for security reasons, it's not ok to display the same wealth
-          // of information as we do in development)
-
-          // Render Error Page on production or
-          // create a route (/src/routes) for an error page and redirect to it
-          res.status(500).send('500 | Internal Server Error');
-
-          if (process.env.DEBUGGING) {
-            console.error(err.stack);
-          }
-        }
+    try {
+      console.log('[Render] Calling render function');
+      const html = await render({
+        req,
+        res,
       });
+
+      const renderTime = Date.now() - startTime;
+      console.log(`[SSR] Render successful for ${req.url} in ${renderTime}ms`);
+      console.log(`[SSR] HTML size: ${html.length} bytes`);
+
+      // Add hydration debugging attributes
+      const enhancedHtml = html.replace(
+        '<div id="app">',
+        `<div id="app" data-server-rendered="true" data-render-time="${renderTime}">`,
+      );
+
+      res.send(enhancedHtml);
+      console.log('[Render] Response sent');
+    } catch (err: unknown) {
+      const error = err as RenderError;
+      const errorTime = Date.now() - startTime;
+      console.error(`[SSR] Render failed for ${req.url} after ${errorTime}ms:`, error);
+      console.error('[Render] Error stack:', error.stack);
+
+      if (error.url) {
+        if (error.code === 404) {
+          console.log('[SSR] 404 redirect to:', error.url);
+          res.redirect(error.url);
+          return;
+        } else if (process.env.DEV) {
+          // Preserve error during development
+          throw error;
+        }
+      }
+
+      // Production error handling
+      if (error.code === 404) {
+        res.status(404).send('404 | Page Not Found');
+        return;
+      }
+
+      // Default to 500 error
+      res.status(500).send('500 | Internal Server Error');
+    }
   });
 });
