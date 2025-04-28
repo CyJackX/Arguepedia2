@@ -65,6 +65,7 @@ const loadHelloMessage = async () => {
 
 const loadRecentArguments = async () => {
   try {
+    console.log('Loading recent arguments');
     const { data, error } = await supabase
       .from('argument_view')
       .select('*')
