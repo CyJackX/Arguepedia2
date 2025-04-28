@@ -2,6 +2,5 @@
   <router-view />
 </template>
 
-<sript setup lang="ts">
-//
+<script setup lang="ts">
 </script>
